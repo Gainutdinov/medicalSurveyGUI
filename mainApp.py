@@ -77,6 +77,7 @@ class MyWin(QtWidgets.QDialogButtonBox, Ui_Dialog):
             os.mkdir(path)
             print('----------------',newFolderName)
             self.copy_rename(fileName, newFileName, newFolderName,path)
+            self.close()
         except OSError:  
             print ("Creation of the directory %s failed" % path)
         else:  
@@ -86,6 +87,7 @@ class MyWin(QtWidgets.QDialogButtonBox, Ui_Dialog):
     
     def reject(self):
         print('reject')
+        self.close()
  
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
