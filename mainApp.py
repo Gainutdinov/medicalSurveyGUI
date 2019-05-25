@@ -67,10 +67,8 @@ class MyWin(QtWidgets.QDialogButtonBox, Ui_Dialog):
         newFolderName=name+'_'+surname+'_'+middleName+'_'+now
         #path = os.path.join(os.curdir , newFolderName)
         newFileName=str(fileName.split('.')[0]+'_'+str(now)+'.'+fileName.split('.')[1])
-        print(newFileName)
+        # print(newFileName)
         
-
-
         #print(self.copy_rename)
         #print(path)
         try:  
