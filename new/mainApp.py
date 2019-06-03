@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from PyQt5 import QtCore, QtWidgets, QtMultimedia
 from shell_ui import Ui_MainWindow
+from dialog import MyDialog
 import os
 import shutil
 import sys
@@ -27,11 +28,15 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         }
 
 
-        self.ui.pushButton.clicked.connect(self.closeProgram)
+        self.ui.pushButton.clicked.connect(self.close)
         self.ui.pushButton_2.clicked.connect(self.copyAndOpenTheTemplate)
         self.ui.lineEdit.textChanged.connect(self.enableButton)
         self.ui.lineEdit_2.textChanged.connect(self.enableButton)
         self.ui.lineEdit_3.textChanged.connect(self.enableButton)
+        #self.ui.menu.addAction("Выход", self.close)
+        #self.ui.menu.addAction("Выбор папок", self.menuChoice)
+        self.ui.action.triggered.connect(self.menuChoice)
+        self.ui.action_2.triggered.connect(self.close)
         self.ui.buttonGroup.buttonToggled.connect(self.enableButton)
         self.ui.buttonGroup.buttonClicked.connect(self.fullfillComboBox)
         self.ui.toolButton.clicked.connect(self.selectFolder)
@@ -75,8 +80,17 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
             self.ui.pushButton_2.setEnabled(False)
         #print(self.ui.buttonGroup.checkedButton())
     
-    def closeProgram(self):
-        self.close()
+    def menuChoice(self):
+        dialog = MyDialog(self)
+        result = dialog.exec()
+        if result == QtWidgets.QDialog.Accepted:
+            print("Нажата кнопка Save")
+        else:
+            print("Нажата кнопка Cancel, кнопка Закрыть или клавиша <Esc>", result)
+        #print('ssssss')
+
+    # def closeProgram(self):
+    #     self.close()
     
     def fullfillComboBox(self):
         # print(self.ui.buttonGroup.checkedButton().text())

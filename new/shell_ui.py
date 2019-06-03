@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './shell_ui.ui'
+# Form implementation generated from reading ui file 'shell_ui.ui'
 #
 # Created by: PyQt5 UI code generator 5.10.1
 #
@@ -116,10 +116,22 @@ class Ui_MainWindow(object):
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 602, 28))
         self.menubar.setObjectName("menubar")
+        self.menu = QtWidgets.QMenu(self.menubar)
+        self.menu.setObjectName("menu")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
+        self.action = QtWidgets.QAction(MainWindow)
+        self.action.setObjectName("action")
+        self.action_3 = QtWidgets.QAction(MainWindow)
+        self.action_3.setObjectName("action_3")
+        self.action_2 = QtWidgets.QAction(MainWindow)
+        self.action_2.setObjectName("action_2")
+        self.menu.addAction(self.action)
+        self.menu.addSeparator()
+        self.menu.addAction(self.action_2)
+        self.menubar.addAction(self.menu.menuAction())
         self.label_3.setBuddy(self.lineEdit_3)
         self.label_2.setBuddy(self.lineEdit_2)
         self.label.setBuddy(self.lineEdit)
@@ -153,14 +165,7 @@ class Ui_MainWindow(object):
         self.label_7.setText(_translate("MainWindow", "Выбор папки для сохранения"))
         self.toolButton.setText(_translate("MainWindow", "..."))
         self.pushButton.setText(_translate("MainWindow", "Закрыть программу"))
-
-
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())
+        self.menu.setTitle(_translate("MainWindow", "Настройки"))
+        self.action.setText(_translate("MainWindow", "Выбор папок"))
+        self.action_2.setText(_translate("MainWindow", "Выход"))
 
