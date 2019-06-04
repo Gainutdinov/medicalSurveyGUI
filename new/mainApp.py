@@ -162,9 +162,9 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         srcDir=os.path.join(os.getcwd(),self.typeOfProtocols[self.ui.buttonGroup.checkedButton().text()],self.ui.comboBox.currentText())
 #        print(srcDir)
         new_dst_file_name=os.path.join(destDir,newFileName)
-
+        print(new_dst_file_name)
         self.copy_rename(protocol, newFileName, srcDir, destDir)
-        command='libreoffice "{}"'.format(new_dst_file_name)
+        command='start winword "{}"'.format(new_dst_file_name.replace('/', '\\'))
         os.system(command)
         self.close()
         # print(newFileName,'-----------')
