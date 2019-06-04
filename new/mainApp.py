@@ -5,6 +5,7 @@ from shell_ui import Ui_MainWindow
 from dialog import MyDialog
 import os
 import shutil
+import json
 import sys
 
 
@@ -41,16 +42,9 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ui.buttonGroup.buttonClicked.connect(self.fullfillComboBox)
         self.ui.toolButton.clicked.connect(self.selectFolder)
 
-        for folder in list(self.typeOfProtocols.values()):
-            for _ in os.listdir(folder):
-                #print(_)
-                if os.path.isfile('./'+folder+'/'+_):
-                    if folder == 'Доктора':
-                        self.DOCTORS.append(_)
-                    elif folder == 'Протоколы УЗИ':
-                        self.PROTOCOL_ULTRASOUND.append(_)
-                    elif folder == 'Сосуды':
-                        self.VESSELS.append(_)
+        self.readSettingsFile()
+
+
                     #self.ui.comboBox.addItem(str(_))
                     #print(_)
 
@@ -85,6 +79,8 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         result = dialog.exec()
         if result == QtWidgets.QDialog.Accepted:
             print("Нажата кнопка Save")
+            # self.ui.lineEdit_4.setText(dialog.dialog_ui.lineEdit_4.text())
+            self.readSettingsFile()
         else:
             print("Нажата кнопка Cancel, кнопка Закрыть или клавиша <Esc>", result)
         #print('ssssss')
@@ -103,17 +99,48 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         elif selectButton=='УЗИ Общее':
             self.ui.comboBox.addItems(self.PROTOCOL_ULTRASOUND)
             print('PROTOCOL_ULTRASOUND')
-        elif selectButton=='УЗИ Сосудов': 
+        elif selectButton=='УЗИ Сосудов':
             self.ui.comboBox.addItems(self.VESSELS)
-            print('VESSELS') 
+            print('VESSELS')
 
     def selectFolder(self):
         directory=QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory")
         if (directory):
             self.ui.lineEdit_4.setText(directory)
+            with open("settings.json", "r") as jsonFile:
+                data = json.load(jsonFile)
+
+            data["Пациенты"] = directory
+
+            with open("settings.json", "w") as jsonFile:
+                json.dump(data, jsonFile)
             #print('No')
         #print(directory)
     
+    def readSettingsFile(self):
+        self.DOCTORS.clear()
+        self.PROTOCOL_ULTRASOUND.clear()
+        self.VESSELS.clear()
+        with open('settings.json', 'r') as jsonfile:
+            jsonData = json.load(jsonfile)
+            self.ui.lineEdit_4.setText(jsonData['Пациенты'])
+            for _ in os.listdir(jsonData['Доктора']):
+                self.DOCTORS.append(_)
+            for _ in os.listdir(jsonData['Протоколы УЗИ']):
+                self.PROTOCOL_ULTRASOUND.append(_)
+            for _ in os.listdir(jsonData['Сосуды']):
+                self.VESSELS.append(_)
+            # for folder in list(self.typeOfProtocols.values()):
+            #     for _ in os.listdir(folder):
+            #         #print(_)
+            #         if os.path.isfile('./'+folder+'/'+_):
+            #             if folder == 'Доктора':
+            #                 self.DOCTORS.append(_)
+            #             elif folder == 'Протоколы УЗИ':
+            #                 self.PROTOCOL_ULTRASOUND.append(_)
+            #             elif folder == 'Сосуды':
+            #                 self.VESSELS.append(_)
+        
     def copyAndOpenTheTemplate(self):
         #copy_rename(old_file_name, new_file_name, src_dir, dest_dir):
 
@@ -134,6 +161,7 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         destDir=os.path.join(self.ui.lineEdit_4.text(),newDirName)
         srcDir=os.path.join(os.getcwd(),self.typeOfProtocols[self.ui.buttonGroup.checkedButton().text()],self.ui.comboBox.currentText())
 #        print(srcDir)
+        new_dst_file_name=os.path.join(destDir,newFileName)
 
         self.copy_rename(protocol, newFileName, srcDir, destDir)
         command='libreoffice "{}"'.format(new_dst_file_name)
@@ -144,6 +172,16 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
 
  
 if __name__ == "__main__":
+    if not ('settings.json' in os.listdir()):
+        settings = {  
+            'Доктора': os.path.join(os.getcwd(),'Доктора'),
+            'Протоколы УЗИ': os.path.join(os.getcwd(),'Протоколы УЗИ'),
+            'Сосуды': os.path.join(os.getcwd(),'Сосуды'),
+            'Пациенты': os.getcwd()
+        }
+        # settings = json.dumps(settings).decode('unicode-escape').encode('utf8')
+        with open('settings.json', 'w') as json_file:  
+            json.dump(settings, json_file, ensure_ascii=False)
     app = QtWidgets.QApplication(sys.argv)
     #ico = QtWidgets.QWidget().style().standardIcon(QtWidgets.QStyle.SP_MediaVolume)
     #app.setWindowIcon(ico)

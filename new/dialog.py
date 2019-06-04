@@ -15,6 +15,13 @@ class MyDialog(QtWidgets.QDialog):
         self.dialog_ui = Ui_Dialog()
         self.dialog_ui.setupUi(self)
 
+        with open('settings.json', 'r') as jsonfile:
+            jsonData = json.load(jsonfile)
+            self.dialog_ui.lineEdit.setText(jsonData['Доктора'])
+            self.dialog_ui.lineEdit_2.setText(jsonData['Протоколы УЗИ'])
+            self.dialog_ui.lineEdit_3.setText(jsonData['Сосуды'])
+            self.dialog_ui.lineEdit_4.setText(jsonData['Пациенты'])
+
         self.dialog_ui.buttonBox.rejected.connect(self.close)
         self.dialog_ui.buttonBox.accepted.connect(self.saveConfig)
         self.dialog_ui.toolButton.clicked.connect(self.selectDirectory)
@@ -49,7 +56,7 @@ class MyDialog(QtWidgets.QDialog):
 
     
     def selectDirectory(self):
-        print(self.sender().objectName(),'toolButton')
+        # print(self.sender().objectName(),'toolButton')
         directory=QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory")
         if (directory):
             if (self.sender().objectName()=='toolButton'):
@@ -60,31 +67,3 @@ class MyDialog(QtWidgets.QDialog):
                 self.dialog_ui.lineEdit_3.setText(directory)
             elif (self.sender().objectName()=='toolButton_4'):
                 self.dialog_ui.lineEdit_4.setText(directory)
-
-# app = QtWidgets.QApplication(sys.argv)
-# window = QtWidgets.QWidget()
-# window.setWindowTitle("Класс QDialog")
-# window.resize(300, 70)
-
-# button = QtWidgets.QPushButton("Отобразить диалоговое окно...")
-# button.clicked.connect(on_clicked)
-
-# box = QtWidgets.QVBoxLayout()
-# box.addWidget(button)
-# window.setLayout(box)
-
-# window.show()
-# sys.exit(app.exec_())
-
-
-
-# dialog = MyDialog(window)
-# dialog.accepted.connect(on_accepted)
-# dialog.rejected.connect(on_rejected)
-# dialog.finished[int].connect(on_finished)
-# result = dialog.exec_()
-# if result == QtWidgets.QDialog.Accepted:
-#     print(dialog.lineEdit.text())
-# else:
-#     print("Нажата кнопка Cancel, кнопка Закрыть или клавиша <Esc>", 
-#             result)
