@@ -21,6 +21,10 @@ class MyDialog(QtWidgets.QDialog):
             self.dialog_ui.lineEdit_2.setText(jsonData['Протоколы УЗИ'])
             self.dialog_ui.lineEdit_3.setText(jsonData['Сосуды'])
             self.dialog_ui.lineEdit_4.setText(jsonData['Пациенты'])
+            self.surname = jsonData['Фамилия']
+            self.name = jsonData['Имя']
+            self.middleName = jsonData['Отчество']
+            self.birthDate= jsonData['ДатаРождения']
 
         self.dialog_ui.buttonBox.rejected.connect(self.close)
         self.dialog_ui.buttonBox.accepted.connect(self.saveConfig)
@@ -41,11 +45,16 @@ class MyDialog(QtWidgets.QDialog):
             'Доктора': self.dialog_ui.lineEdit.text(),
             'Протоколы УЗИ': self.dialog_ui.lineEdit_2.text(),
             'Сосуды': self.dialog_ui.lineEdit_3.text(),
-            'Пациенты': self.dialog_ui.lineEdit_4.text()
+            'Пациенты': self.dialog_ui.lineEdit_4.text(),
+            'Фамилия': self.surname,
+            'Имя': self.name,
+            'Отчество': self.middleName,
+            'ДатаРождения': self.birthDate
         }
         # settings = json.dumps(settings).decode('unicode-escape').encode('utf8')
         with open('settings.json', 'w') as json_file:  
             json.dump(settings, json_file, ensure_ascii=False)
+        
 
     def enableSaveConfig(self):
         if (self.dialog_ui.lineEdit.text() != '' and

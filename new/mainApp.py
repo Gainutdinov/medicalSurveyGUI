@@ -3,6 +3,7 @@
 from PyQt5 import QtCore, QtWidgets, QtMultimedia
 from shell_ui import Ui_MainWindow
 from dialog import MyDialog
+from exception_handler import catch_exceptions
 import os
 import shutil
 import json
@@ -29,6 +30,7 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         }
 
 
+
         self.ui.pushButton.clicked.connect(self.close)
         self.ui.pushButton_2.clicked.connect(self.copyAndOpenTheTemplate)
         self.ui.lineEdit.textChanged.connect(self.enableButton)
@@ -52,7 +54,10 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         try:
             #src_dir=os.path.join(os.curdir,'Протоколы УЗИ')
             #dst_dir= dest_dir #os.path.join(os.curdir , new_folder_name)
-            os.mkdir(dst_dir)
+            if (os.path.isdir(dst_dir)):
+                print('folder already exist')
+            else:
+                os.mkdir(dst_dir)
             #print('dst_dir',dst_dir)
             #print('src_dir_file',src_dir_file)
             shutil.copy(src_dir_file,dst_dir)
@@ -76,7 +81,7 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
     
     def menuChoice(self):
         dialog = MyDialog(self)
-        result = dialog.exec()
+        result = dialog.exec_()
         if result == QtWidgets.QDialog.Accepted:
             print("Нажата кнопка Save")
             # self.ui.lineEdit_4.setText(dialog.dialog_ui.lineEdit_4.text())
@@ -109,9 +114,7 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
             self.ui.lineEdit_4.setText(directory)
             with open("settings.json", "r") as jsonFile:
                 data = json.load(jsonFile)
-
             data["Пациенты"] = directory
-
             with open("settings.json", "w") as jsonFile:
                 json.dump(data, jsonFile)
             #print('No')
@@ -122,25 +125,21 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         self.PROTOCOL_ULTRASOUND.clear()
         self.VESSELS.clear()
         with open('settings.json', 'r') as jsonfile:
-            jsonData = json.load(jsonfile)
-            self.ui.lineEdit_4.setText(jsonData['Пациенты'])
-            for _ in os.listdir(jsonData['Доктора']):
-                self.DOCTORS.append(_)
-            for _ in os.listdir(jsonData['Протоколы УЗИ']):
-                self.PROTOCOL_ULTRASOUND.append(_)
-            for _ in os.listdir(jsonData['Сосуды']):
-                self.VESSELS.append(_)
-            # for folder in list(self.typeOfProtocols.values()):
-            #     for _ in os.listdir(folder):
-            #         #print(_)
-            #         if os.path.isfile('./'+folder+'/'+_):
-            #             if folder == 'Доктора':
-            #                 self.DOCTORS.append(_)
-            #             elif folder == 'Протоколы УЗИ':
-            #                 self.PROTOCOL_ULTRASOUND.append(_)
-            #             elif folder == 'Сосуды':
-            #                 self.VESSELS.append(_)
-        
+            self.jsonData = json.load(jsonfile)
+            self.ui.lineEdit_4.setText(self.jsonData['Пациенты'])
+            for _ in os.listdir(self.jsonData['Доктора']):
+                self.DOCTORS.append(_.split('.')[0])
+            for _ in os.listdir(self.jsonData['Протоколы УЗИ']):
+                self.PROTOCOL_ULTRASOUND.append(_.split('.')[0])
+            for _ in os.listdir(self.jsonData['Сосуды']):
+                self.VESSELS.append(_.split('.')[0])
+            self.ui.lineEdit.setText(self.jsonData['Фамилия'])
+            self.ui.lineEdit_2.setText(self.jsonData['Имя'])
+            self.ui.lineEdit_3.setText(self.jsonData['Отчество'])
+            # birthDateStr = jsonData['ДатаРождения'] #"20/12/2015";
+            # QDate Date = QDate::fromString(date_string_on_db,"dd/MM/yyyy");
+            self.ui.dateEdit.setDate(QtCore.QDate.fromString(self.jsonData['ДатаРождения'],"dd.MM.yyyy")) # (1993, 12, 25)  # .setText(jsonData['Отчетсво'])
+
     def copyAndOpenTheTemplate(self):
         #copy_rename(old_file_name, new_file_name, src_dir, dest_dir):
 
@@ -150,22 +149,36 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         surname=self.ui.lineEdit.text()
         middleName=self.ui.lineEdit_3.text()
 
-        protocol=self.ui.comboBox.currentText()
+        # protocol=self.ui.comboBox.currentText()
+        # with open('settings.json', 'r') as jsonfile:
+        dirWithProtocols=self.jsonData[self.typeOfProtocols[self.ui.buttonGroup.checkedButton().text()]]
+            
+ 
+        protocol = [filename for filename in os.listdir(dirWithProtocols) if filename.startswith(self.ui.comboBox.currentText())][0]
         protocolName=protocol.split('.')[0]
-        protocolExt=self.ui.comboBox.currentText().split('.')[1]
+
+        protocolExt=protocol.split('.')[1] #self.ui.comboBox.currentText().split('.')[1]
 
 
         newDirName=('{0}_{1}_{2}_{3}').format(surname,name,middleName,birthDate)
         # print(self.ui.comboBox.currentText(),'-----')
         newFileName=('{0}_{1}.{2}').format(protocolName,now,protocolExt)
         destDir=os.path.join(self.ui.lineEdit_4.text(),newDirName)
-        srcDir=os.path.join(os.getcwd(),self.typeOfProtocols[self.ui.buttonGroup.checkedButton().text()],self.ui.comboBox.currentText())
-#        print(srcDir)
+        srcDir=os.path.join(os.getcwd(),self.typeOfProtocols[self.ui.buttonGroup.checkedButton().text()],protocol)# self.ui.comboBox.currentText())
         new_dst_file_name=os.path.join(destDir,newFileName)
         print(new_dst_file_name)
         self.copy_rename(protocol, newFileName, srcDir, destDir)
-        command='start winword "{}"'.format(new_dst_file_name.replace('/', '\\'))
-        os.system(command)
+        # command='start winword "{}"'.format(new_dst_file_name.replace('/', '\\'))
+        # os.system(command)
+
+        self.jsonData['Фамилия'] = surname 
+        self.jsonData['Имя'] = name
+        self.jsonData['Отчество'] = middleName
+        self.jsonData['ДатаРождения'] =  self.ui.dateEdit.date().toString('dd.MM.yyyy')
+        # settings = json.dumps(settings).decode('unicode-escape').encode('utf8')
+        with open('settings.json', 'w') as json_file:  
+            json.dump(self.jsonData, json_file, ensure_ascii=False)
+        print('OKAY!')
         self.close()
         # print(newFileName,'-----------')
         # print(newDirName)
@@ -177,7 +190,11 @@ if __name__ == "__main__":
             'Доктора': os.path.join(os.getcwd(),'Доктора'),
             'Протоколы УЗИ': os.path.join(os.getcwd(),'Протоколы УЗИ'),
             'Сосуды': os.path.join(os.getcwd(),'Сосуды'),
-            'Пациенты': os.getcwd()
+            'Пациенты': os.getcwd(),
+            'Фамилия': "Иванов",
+            'Имя': "Иван",
+            'Отчество': "Иванович",
+            'ДатаРождения': "25.12.1993"
         }
         # settings = json.dumps(settings).decode('unicode-escape').encode('utf8')
         with open('settings.json', 'w') as json_file:  
