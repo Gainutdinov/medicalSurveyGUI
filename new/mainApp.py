@@ -126,7 +126,19 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         self.VESSELS.clear()
         with open('settings.json', 'r') as jsonfile:
             self.jsonData = json.load(jsonfile)
+
             self.ui.lineEdit_4.setText(self.jsonData['Пациенты'])
+
+            try:
+                completer = QtWidgets.QCompleter( [client.split('_')[0] for client in os.listdir(self.jsonData['Пациенты'])], self.ui.lineEdit)
+                self.ui.lineEdit.setCompleter(completer)
+                completer = QtWidgets.QCompleter( [client.split('_')[1] for client in os.listdir(self.jsonData['Пациенты'])], self.ui.lineEdit_2)
+                self.ui.lineEdit_2.setCompleter(completer)
+                completer = QtWidgets.QCompleter( [client.split('_')[2] for client in os.listdir(self.jsonData['Пациенты'])], self.ui.lineEdit_3)
+                self.ui.lineEdit_3.setCompleter(completer)
+            except:
+                print('Пациентов не было найдено')
+
             for _ in os.listdir(self.jsonData['Доктора']):
                 self.DOCTORS.append(_.split('.')[0])
             for _ in os.listdir(self.jsonData['Протоколы УЗИ']):
@@ -139,6 +151,7 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
             # birthDateStr = jsonData['ДатаРождения'] #"20/12/2015";
             # QDate Date = QDate::fromString(date_string_on_db,"dd/MM/yyyy");
             self.ui.dateEdit.setDate(QtCore.QDate.fromString(self.jsonData['ДатаРождения'],"dd.MM.yyyy")) # (1993, 12, 25)  # .setText(jsonData['Отчетсво'])
+
 
     def copyAndOpenTheTemplate(self):
         #copy_rename(old_file_name, new_file_name, src_dir, dest_dir):
