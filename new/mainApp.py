@@ -40,9 +40,11 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         #self.ui.menu.addAction("Выбор папок", self.menuChoice)
         self.ui.action.triggered.connect(self.menuChoice)
         self.ui.action_2.triggered.connect(self.close)
+        self.ui.pushButton_3.clicked.connect(self.fillBirthDate)
         self.ui.buttonGroup.buttonToggled.connect(self.enableButton)
         self.ui.buttonGroup.buttonClicked.connect(self.fullfillComboBox)
         self.ui.toolButton.clicked.connect(self.selectFolder)
+
 
         self.readSettingsFile()
 
@@ -151,6 +153,20 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
             # birthDateStr = jsonData['ДатаРождения'] #"20/12/2015";
             # QDate Date = QDate::fromString(date_string_on_db,"dd/MM/yyyy");
             self.ui.dateEdit.setDate(QtCore.QDate.fromString(self.jsonData['ДатаРождения'],"dd.MM.yyyy")) # (1993, 12, 25)  # .setText(jsonData['Отчетсво'])
+    
+    def fillBirthDate(self):
+        try:
+            for client in os.listdir(self.jsonData['Пациенты']):
+                if client.split('_')[0] == self.ui.lineEdit.text() and \
+                   client.split('_')[1] == self.ui.lineEdit_2.text() and \
+                   client.split('_')[2] == self.ui.lineEdit_3.text():
+                    # print(str(client.split('_')[3:]))
+                    self.ui.dateEdit.setDate(QtCore.QDate.fromString('_'.join(client.split('_')[3:]), "dd_MM_yyyy"))
+                    self.ui.pushButton_3.setEnabled(False)
+
+        except:
+            print('Не найдено года рождения')
+        
 
 
     def copyAndOpenTheTemplate(self):

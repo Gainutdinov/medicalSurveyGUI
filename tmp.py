@@ -1,43 +1,37 @@
-import os
-import datetime
-import shutil
+# -*- coding: utf-8 -*-
+from PyQt5 import QtCore, QtWidgets
+import sys
 
-d = datetime.date(2012, 12, 14).strftime('%d_%m_%Y')
+def on_clicked():
+    ind = listView.currentIndex()
+    if ind.isValid():
+        print("Данные:", ind.data())
+        print("row:", ind.row(), "column:", ind.column())
 
-name="Marat"
-surname="Gainutdinov"
-middleName="Mubarahanovich"
+        ind_sibling = ind.sibling(0, 0)
+        if ind_sibling.isValid():
+            print("sibling:", ind_sibling.data())
+        else:
+            print("Нет sibling")
+        
+    else:
+        print("Нет текущего элемента")
 
-fileName='simple.doc'
-
-#path = os.getcwd()+'\\'+name+'_'+surname+'_'+middleName+'_'+d
-newFolderName=name+'_'+surname+'_'+middleName+'_'+d
-path = os.path.join(os.curdir , newFolderName)
-newFileName=str(fileName.split('.')[0]+'_'+d+'.'+fileName.split('.')[1])
-print(newFileName)
-
-def copy_rename(old_file_name, new_file_name, new_folder_name):
-    src_dir= os.curdir
-    dst_dir= os.path.join(os.curdir , newFolderName)
-    src_file = os.path.join(src_dir, old_file_name)
-    shutil.copy(src_file,dst_dir)
-    
-    dst_file = os.path.join(dst_dir, old_file_name)
-    new_dst_file_name = os.path.join(dst_dir, new_file_name)
-    os.rename(dst_file, new_dst_file_name)
-
-
-#print(d)
-#print(type(d))
-
-print(path)
-try:  
-    os.mkdir(path)
-    print('----------------')
-    copy_rename(fileName, newFileName, newFolderName)
-except OSError:  
-    print ("Creation of the directory %s failed" % path)
-else:  
-    print ("Successfully created the directory %s " % path)
-
-
+app = QtWidgets.QApplication(sys.argv)
+window = QtWidgets.QWidget()
+window.setWindowTitle("Класс QListView")
+window.resize(300, 200)
+listView = QtWidgets.QListView()
+L = []
+for i in range(1, 11):
+    L.append("Пункт {0}".format(i))
+model = QtCore.QStringListModel(L)
+listView.setModel(model)
+button = QtWidgets.QPushButton("Получить значение")
+button.clicked.connect(on_clicked)
+box = QtWidgets.QVBoxLayout()
+box.addWidget(listView)
+box.addWidget(button)
+window.setLayout(box)
+window.show()
+sys.exit(app.exec_())
