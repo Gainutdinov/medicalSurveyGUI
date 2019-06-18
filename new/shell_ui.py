@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'shell_ui.ui'
+# Form implementation generated from reading ui file './shell_ui.ui'
 #
 # Created by: PyQt5 UI code generator 5.10.1
 #
@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(718, 616)
+        MainWindow.resize(875, 611)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout_2 = QtWidgets.QGridLayout(self.centralwidget)
@@ -114,10 +114,10 @@ class Ui_MainWindow(object):
         self.pushButton.setLayoutDirection(QtCore.Qt.RightToLeft)
         self.pushButton.setObjectName("pushButton")
         self.gridLayout.addWidget(self.pushButton, 10, 2, 1, 1)
-        self.listView_2 = QtWidgets.QListView(self.centralwidget)
-        self.listView_2.setObjectName("listView_2")
-        self.gridLayout.addWidget(self.listView_2, 8, 3, 1, 1)
         self.verticalLayout_3 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_3.setSizeConstraint(QtWidgets.QLayout.SetMinimumSize)
+        self.verticalLayout_3.setContentsMargins(-1, -1, 0, -1)
+        self.verticalLayout_3.setSpacing(2)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.pushButton_5 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_5.setText("")
@@ -134,17 +134,20 @@ class Ui_MainWindow(object):
         self.pushButton_4.setObjectName("pushButton_4")
         self.verticalLayout_3.addWidget(self.pushButton_4)
         self.gridLayout.addLayout(self.verticalLayout_3, 8, 2, 1, 1)
-        self.listView = QtWidgets.QListView(self.centralwidget)
-        self.listView.setObjectName("listView")
-        self.gridLayout.addWidget(self.listView, 8, 1, 1, 1)
         self.comboBox = QtWidgets.QComboBox(self.centralwidget)
         self.comboBox.setEnabled(False)
         self.comboBox.setObjectName("comboBox")
         self.gridLayout.addWidget(self.comboBox, 7, 1, 1, 3)
+        self.listWidget = QtWidgets.QListWidget(self.centralwidget)
+        self.listWidget.setObjectName("listWidget")
+        self.gridLayout.addWidget(self.listWidget, 8, 1, 1, 1)
+        self.listWidget_2 = QtWidgets.QListWidget(self.centralwidget)
+        self.listWidget_2.setObjectName("listWidget_2")
+        self.gridLayout.addWidget(self.listWidget_2, 8, 3, 1, 1)
         self.gridLayout_2.addLayout(self.gridLayout, 2, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 718, 28))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 875, 28))
         self.menubar.setObjectName("menubar")
         self.menu = QtWidgets.QMenu(self.menubar)
         self.menu.setObjectName("menu")

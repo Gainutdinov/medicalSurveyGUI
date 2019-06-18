@@ -44,6 +44,8 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ui.buttonGroup.buttonToggled.connect(self.enableButton)
         self.ui.buttonGroup.buttonClicked.connect(self.fullfillComboBox)
         self.ui.toolButton.clicked.connect(self.selectFolder)
+        self.ui.pushButton_4.clicked.connect(self.rmvFromSrv)
+        self.ui.pushButton_5.clicked.connect(self.addToSrv)
 
 
         self.readSettingsFile()
@@ -102,12 +104,18 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ui.comboBox.setEnabled(True)
         if selectButton=='Приём Врача':
             self.ui.comboBox.addItems(self.DOCTORS)
+            self.ui.listWidget.clear()
+            self.ui.listWidget.addItems(self.DOCTORS)
             print('DOCTORS')
         elif selectButton=='УЗИ Общее':
             self.ui.comboBox.addItems(self.PROTOCOL_ULTRASOUND)
+            self.ui.listWidget.clear()
+            self.ui.listWidget.addItems(self.PROTOCOL_ULTRASOUND)
             print('PROTOCOL_ULTRASOUND')
         elif selectButton=='УЗИ Сосудов':
             self.ui.comboBox.addItems(self.VESSELS)
+            self.ui.listWidget.clear()
+            self.ui.listWidget.addItems(self.VESSELS)
             print('VESSELS')
 
     def selectFolder(self):
@@ -211,6 +219,31 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         self.close()
         # print(newFileName,'-----------')
         # print(newDirName)
+    
+    def addToSrv(self):
+        # print(self.ui.listWidget.selectedItems())
+
+        # QListWidgetItem *newItem = new QListWidgetItem;
+        # QString fullFilePath("/home/username/file");
+        # QVariant fullFilePathData(fullFilePath);
+        # newItem=QtWidgets.QListWidgetItem.setData( Qt::UserRole, fullFilePathData);
+        # newItem->setText(itemText);
+        # listWidget->insertItem(row, newItem);
+        if not (self.ui.listWidget.selectedIndexes() == []):
+            item=QtWidgets.QListWidgetItem(self.ui.listWidget.currentItem().text())
+            item.setData(QtCore.Qt.UserRole, self.ui.buttonGroup.checkedButton().text())
+            #   data = currentItem->data(Qt::UserRole)
+            self.ui.listWidget_2.addItem(item)#self.ui.listWidget.currentItem().text())
+            # self.enableButton()
+
+    def rmvFromSrv(self):
+        listItems=self.ui.listWidget_2.selectedItems()
+        if not listItems: return        
+        for item in listItems:
+            print(item.text())
+            print(item.data(QtCore.Qt.UserRole))
+            self.ui.listWidget_2.takeItem(self.ui.listWidget_2.row(item))
+        print('RemovevFromSRV')
 
  
 if __name__ == "__main__":
