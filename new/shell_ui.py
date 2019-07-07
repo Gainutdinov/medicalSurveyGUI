@@ -7,6 +7,12 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+import os, sys
+
+def resource_path(relative_path):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -100,7 +106,7 @@ class Ui_MainWindow(object):
         self.pushButton_3 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_3.setText("")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("checkmark.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(resource_path("checkmark.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pushButton_3.setIcon(icon)
         self.pushButton_3.setObjectName("pushButton_3")
         self.gridLayout.addWidget(self.pushButton_3, 3, 3, 1, 1)
@@ -125,14 +131,14 @@ class Ui_MainWindow(object):
         self.pushButton_5 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_5.setText("")
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("rightArrow.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap(resource_path("rightArrow.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pushButton_5.setIcon(icon1)
         self.pushButton_5.setObjectName("pushButton_5")
         self.verticalLayout_3.addWidget(self.pushButton_5)
         self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_4.setText("")
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap("leftArrow.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon2.addPixmap(QtGui.QPixmap(resource_path("leftArrow.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pushButton_4.setIcon(icon2)
         self.pushButton_4.setObjectName("pushButton_4")
         self.verticalLayout_3.addWidget(self.pushButton_4)
