@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from PyQt5 import QtCore, QtWidgets, QtMultimedia
+from docx import Document
 from shell_ui import Ui_MainWindow
+from CustomDateEdit import DateEdit as customDateEdit
 from dialog import MyDialog
 from exception_handler import catch_exceptions
 import os
 import shutil
 import json
 import sys
+
 
 
 class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -18,6 +21,15 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         #QtWidgets.QWidget.__init__(self, parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+
+        self.ui.gridLayout.removeWidget(self.ui.dateEdit)
+        self.ui.dateEdit.close()
+        self.ui.dateEdit = customDateEdit(self.ui.centralwidget)
+        self.ui.gridLayout.addWidget(self.ui.dateEdit, 3, 1, 1, 2)
+        self.ui.gridLayout.update()
+
+        #self.ui.gridLayout.addWidget(customDateEdit, 3, 1, 1, 2)
+
         self.ui.lineEdit_4.setText(os.getcwd())
 
         self.DOCTORS=[] 
@@ -71,6 +83,18 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
             dst_file = os.path.join(dst_dir, old_file_name)
             new_dst_file_name = os.path.join(dst_dir, new_file_name)
             os.rename(dst_file, new_dst_file_name)
+
+            # add with name and surname
+            document = Document(new_dst_file_name)
+            paragraphs = document.paragraphs
+            text = paragraphs[1].text
+            # patient = dst_dir.split('_')[0]+' '+dst_dir.split('_')[1]+' '+dst_dir.split('_')[2]+'\n'\
+            #     +dst_dir.split('_')[3]+'.'+dst_dir.split('_')[4]+'.'+dst_dir.split('_')[5]+'\n'
+            patient = self.ui.lineEdit.text() + ' ' + self.ui.lineEdit_2.text() + ' ' + self.ui.lineEdit_3.text()+'\n'\
+                + self.ui.dateEdit.date().toString('dd.MM.yyyy') + '\n'
+            paragraphs[1]._p.clear()
+            paragraphs[1].add_run(patient + text)
+            document.save(new_dst_file_name)
         except OSError:
             print('OSError')
     
@@ -100,20 +124,18 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
     def fullfillComboBox(self):
         # print(self.ui.buttonGroup.checkedButton().text())
         selectButton=self.ui.buttonGroup.checkedButton().text()
-        self.ui.comboBox.clear()
-        self.ui.comboBox.setEnabled(True)
         if selectButton=='Приём Врача':
-            self.ui.comboBox.addItems(self.DOCTORS)
+            # self.ui.comboBox.addItems(self.DOCTORS)
             self.ui.listWidget.clear()
             self.ui.listWidget.addItems(self.DOCTORS)
             print('DOCTORS')
         elif selectButton=='УЗИ Общее':
-            self.ui.comboBox.addItems(self.PROTOCOL_ULTRASOUND)
+            # self.ui.comboBox.addItems(self.PROTOCOL_ULTRASOUND)
             self.ui.listWidget.clear()
             self.ui.listWidget.addItems(self.PROTOCOL_ULTRASOUND)
             print('PROTOCOL_ULTRASOUND')
         elif selectButton=='УЗИ Сосудов':
-            self.ui.comboBox.addItems(self.VESSELS)
+            # self.ui.comboBox.addItems(self.VESSELS)
             self.ui.listWidget.clear()
             self.ui.listWidget.addItems(self.VESSELS)
             print('VESSELS')
@@ -171,7 +193,6 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
                     # print(str(client.split('_')[3:]))
                     self.ui.dateEdit.setDate(QtCore.QDate.fromString('_'.join(client.split('_')[3:]), "dd_MM_yyyy"))
                     self.ui.pushButton_3.setEnabled(False)
-
         except:
             print('Не найдено года рождения')
         
@@ -191,21 +212,36 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         dirWithProtocols=self.jsonData[self.typeOfProtocols[self.ui.buttonGroup.checkedButton().text()]]
             
  
-        protocol = [filename for filename in os.listdir(dirWithProtocols) if filename.startswith(self.ui.comboBox.currentText())][0]
-        protocolName=protocol.split('.')[0]
+        # protocol = [filename for filename in os.listdir(dirWithProtocols) if filename.startswith(self.ui.comboBox.currentText())][0]
+        # print('--->',protocol)
+        for item in [self.ui.listWidget_2.item(i) for i in range(  self.ui.listWidget_2.count())]:
+            protocolName=item.text()
+            protocolType=self.typeOfProtocols[item.data(QtCore.Qt.UserRole)]
 
-        protocolExt=protocol.split('.')[1] #self.ui.comboBox.currentText().split('.')[1]
+            dirWithProtocols=self.jsonData[self.typeOfProtocols[item.data(QtCore.Qt.UserRole)]]
+            protocol = [filename for filename in os.listdir(dirWithProtocols) if filename.startswith(item.text())][0]
+            protocolExt=protocol.split('.')[1] #self.ui.comboBox.currentText().split('.')[1]
 
+            # protocol=item.text() + '.' + protocolExt
+            newDirName=('{0}_{1}_{2}_{3}').format(surname,name,middleName,birthDate)
+            newFileName=('{0}_{1}.{2}').format(protocolName,now,protocolExt)
+            destDir=os.path.join(self.ui.lineEdit_4.text(),newDirName)
+            srcDir=os.path.join(os.getcwd(),protocolType,protocol)# self.ui.comboBox.currentText())
+            new_dst_file_name=os.path.join(destDir,newFileName)
+            self.copy_rename(protocol, newFileName, srcDir, destDir)
+    
+            command='start winword "{}"'.format(new_dst_file_name.replace('/', '\\'))
+            os.system(command)
 
-        newDirName=('{0}_{1}_{2}_{3}').format(surname,name,middleName,birthDate)
-        # print(self.ui.comboBox.currentText(),'-----')
-        newFileName=('{0}_{1}.{2}').format(protocolName,now,protocolExt)
-        destDir=os.path.join(self.ui.lineEdit_4.text(),newDirName)
-        srcDir=os.path.join(os.getcwd(),self.typeOfProtocols[self.ui.buttonGroup.checkedButton().text()],protocol)# self.ui.comboBox.currentText())
-        new_dst_file_name=os.path.join(destDir,newFileName)
-        print(new_dst_file_name)
-        self.copy_rename(protocol, newFileName, srcDir, destDir)
-        # command='start winword "{}"'.format(new_dst_file_name.replace('/', '\\'))
+        # protocolName=protocol.split('.')[0]
+        # protocolExt='docx' #protocol.split('.')[1] #self.ui.comboBox.currentText().split('.')[1]
+        # newDirName=('{0}_{1}_{2}_{3}').format(surname,name,middleName,birthDate)
+        # newFileName=('{0}_{1}.{2}').format(protocolName,now,protocolExt)
+        # destDir=os.path.join(self.ui.lineEdit_4.text(),newDirName)
+        # srcDir=os.path.join(os.getcwd(),self.typeOfProtocols[self.ui.buttonGroup.checkedButton().text()],protocol)# self.ui.comboBox.currentText())
+        # new_dst_file_name=os.path.join(destDir,newFileName)
+        # print(new_dst_file_name)
+        # self.copy_rename(protocol, newFileName, srcDir, destDir)
         # os.system(command)
 
         self.jsonData['Фамилия'] = surname 
@@ -217,23 +253,15 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
             json.dump(self.jsonData, json_file, ensure_ascii=False)
         print('OKAY!')
         self.close()
-        # print(newFileName,'-----------')
-        # print(newDirName)
     
     def addToSrv(self):
-        # print(self.ui.listWidget.selectedItems())
-
-        # QListWidgetItem *newItem = new QListWidgetItem;
-        # QString fullFilePath("/home/username/file");
-        # QVariant fullFilePathData(fullFilePath);
-        # newItem=QtWidgets.QListWidgetItem.setData( Qt::UserRole, fullFilePathData);
-        # newItem->setText(itemText);
-        # listWidget->insertItem(row, newItem);
         if not (self.ui.listWidget.selectedIndexes() == []):
             item=QtWidgets.QListWidgetItem(self.ui.listWidget.currentItem().text())
             item.setData(QtCore.Qt.UserRole, self.ui.buttonGroup.checkedButton().text())
             #   data = currentItem->data(Qt::UserRole)
-            self.ui.listWidget_2.addItem(item)#self.ui.listWidget.currentItem().text())
+            selectedValues = [self.ui.listWidget_2.item(i).text() for i in range(self.ui.listWidget_2.count())]
+            if item.text() not in selectedValues:
+                self.ui.listWidget_2.addItem(item)#self.ui.listWidget.currentItem().text())
             # self.enableButton()
 
     def rmvFromSrv(self):

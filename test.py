@@ -1,33 +1,47 @@
 # -*- coding: utf-8 -*-
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtWidgets
+import sys, datetime
 
-class MyLabel(QtWidgets.QLabel):
-    def __init__(self, text, parent=None):
-        QtWidgets.QLabel.__init__(self, text, parent)
-        self.setAlignment(QtCore.Qt.AlignCenter)
+def section_to_str(section):
+    if section == QtWidgets.QDateTimeEdit.DaySection:
+        return "День"
+    elif section == QtWidgets.QDateTimeEdit.MonthSection:
+        return "Месяц"
+    elif section == QtWidgets.QDateTimeEdit.YearSection:
+        return "Год"
+    elif section == QtWidgets.QDateTimeEdit.HourSection:
+        return "Часы"
+    elif section == QtWidgets.QDateTimeEdit.MinuteSection:
+        return "Минуты"
+    elif section == QtWidgets.QDateTimeEdit.SecondSection:
+        return "Секунды"
+    return ""
 
-    def enterEvent(self, e):
-        self.setText("Указатель в области компонента")
-        QtWidgets.QLabel.enterEvent(self, e)
+def on_clicked():
+    print("Всего секций -", dateTimeEdit.sectionCount())
+    print("currentSectionIndex() -", dateTimeEdit.currentSectionIndex())
+    print("currentSection() -", section_to_str(dateTimeEdit.currentSection()))
+    print("sectionAt(1) -", section_to_str(dateTimeEdit.sectionAt(1)))
+    print("День -", dateTimeEdit.sectionText(QtWidgets.QDateTimeEdit.DaySection))
+    print(dateTimeEdit.sectionText(dateTimeEdit.currentSection()))
+    print('-------------------')
+    print(dateTimeEdit.text())
 
-    def leaveEvent(self, e):
-        self.setText("Указатель вне области компонента")
-        QtWidgets.QLabel.leaveEvent(self, e)
+def on_date_changed():
+    print(dateTimeEdit.text())
 
-class MyWindow(QtWidgets.QWidget):
-    def __init__(self, parent=None):
-        QtWidgets.QWidget.__init__(self, parent)
-        self.resize(300, 150)
-        self.label = MyLabel("Наведите мышь на рамку")
-        self.label.setFrameStyle(QtWidgets.QFrame.Box |
-                                 QtWidgets.QFrame.Plain)
-        self.vbox = QtWidgets.QVBoxLayout()
-        self.vbox.addWidget(self.label)
-        self.setLayout(self.vbox)
-
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    window = MyWindow()
-    window.show()
-    sys.exit(app.exec_())
+app = QtWidgets.QApplication(sys.argv)
+window = QtWidgets.QWidget()
+window.setWindowTitle("Класс QDateTimeEdit")
+window.resize(300, 70)
+dateTimeEdit = QtWidgets.QDateTimeEdit(datetime.datetime.today())
+dateTimeEdit.dateChanged["QDate"].connect(on_date_changed)
+button = QtWidgets.QPushButton("Вывести значения")
+button.clicked.connect(on_clicked)
+box = QtWidgets.QVBoxLayout()
+box.addWidget(dateTimeEdit)
+box.addWidget(button)
+window.setLayout(box)
+window.show()
+dateTimeEdit.setSelectedSection(QtWidgets.QDateTimeEdit.YearSection)
+sys.exit(app.exec_())
