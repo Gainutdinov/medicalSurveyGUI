@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from PyQt5 import QtCore, QtWidgets, QtMultimedia
-from docx import Document
+from docx import Document, shared
 from shell_ui import Ui_MainWindow
 from CustomDateEdit import DateEdit as customDateEdit
 from dialog import MyDialog
@@ -58,6 +58,8 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ui.toolButton.clicked.connect(self.selectFolder)
         self.ui.pushButton_4.clicked.connect(self.rmvFromSrv)
         self.ui.pushButton_5.clicked.connect(self.addToSrv)
+        self.ui.listWidget.doubleClicked.connect(self.addToSrv)
+        
 
 
         self.readSettingsFile()
@@ -86,12 +88,15 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
 
             # add with name and surname
             document = Document(new_dst_file_name)
+
             paragraphs = document.paragraphs
+            paragraphs[1].style.font.size = shared.Pt(12)
             text = paragraphs[1].text
             # patient = dst_dir.split('_')[0]+' '+dst_dir.split('_')[1]+' '+dst_dir.split('_')[2]+'\n'\
             #     +dst_dir.split('_')[3]+'.'+dst_dir.split('_')[4]+'.'+dst_dir.split('_')[5]+'\n'
-            patient = self.ui.lineEdit.text() + ' ' + self.ui.lineEdit_2.text() + ' ' + self.ui.lineEdit_3.text()+'\n'\
-                + self.ui.dateEdit.date().toString('dd.MM.yyyy') + '\n'
+            patient = 'Ф.И.О.: '  + self.ui.lineEdit.text() + ' ' + self.ui.lineEdit_2.text() + ' ' + self.ui.lineEdit_3.text()+'\n'\
+                + 'Дата рождения: ' + self.ui.dateEdit.date().toString('dd.MM.yyyy') + ' ' \
+                + 'Дата исследования: ' + QtCore.QDate.currentDate().toString('dd.MM.yyyy') + '\n'
             paragraphs[1]._p.clear()
             paragraphs[1].add_run(patient + text)
             document.save(new_dst_file_name)
