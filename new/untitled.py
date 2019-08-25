@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+       # -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'dialog_shell_ui.ui'
 #
@@ -14,12 +14,6 @@ class Ui_Dialog(object):
         Dialog.resize(630, 269)
         self.gridLayout_2 = QtWidgets.QGridLayout(Dialog)
         self.gridLayout_2.setObjectName("gridLayout_2")
-        self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
-        self.buttonBox.setEnabled(False)
-        self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Save)
-        self.buttonBox.setObjectName("buttonBox")
-        self.gridLayout_2.addWidget(self.buttonBox, 1, 0, 1, 1)
         self.gridLayout = QtWidgets.QGridLayout()
         self.gridLayout.setObjectName("gridLayout")
         self.label_3 = QtWidgets.QLabel(Dialog)
@@ -62,17 +56,13 @@ class Ui_Dialog(object):
         self.toolButton_4 = QtWidgets.QToolButton(Dialog)
         self.toolButton_4.setObjectName("toolButton_4")
         self.gridLayout.addWidget(self.toolButton_4, 3, 2, 1, 1)
-        self.label_5 = QtWidgets.QLabel(Dialog)
-        self.label_5.setObjectName("label_5")
-        self.gridLayout.addWidget(self.label_5, 4, 0, 1, 1)
-        self.lineEdit_5 = QtWidgets.QLineEdit(Dialog)
-        self.lineEdit_5.setEnabled(False)
-        self.lineEdit_5.setObjectName("lineEdit_5")
-        self.gridLayout.addWidget(self.lineEdit_5, 4, 1, 1, 1)
-        self.toolButton_5 = QtWidgets.QToolButton(Dialog)
-        self.toolButton_5.setObjectName("toolButton_5")
-        self.gridLayout.addWidget(self.toolButton_5, 4, 2, 1, 1)
         self.gridLayout_2.addLayout(self.gridLayout, 0, 0, 1, 1)
+        self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
+        self.buttonBox.setEnabled(False)
+        self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Save)
+        self.buttonBox.setObjectName("buttonBox")
+        self.gridLayout_2.addWidget(self.buttonBox, 1, 0, 1, 1)
 
         self.retranslateUi(Dialog)
         self.buttonBox.accepted.connect(Dialog.accept)
@@ -90,6 +80,4 @@ class Ui_Dialog(object):
         self.toolButton_2.setText(_translate("Dialog", "..."))
         self.toolButton_3.setText(_translate("Dialog", "..."))
         self.toolButton_4.setText(_translate("Dialog", "..."))
-        self.label_5.setText(_translate("Dialog", "Обследования"))
-        self.toolButton_5.setText(_translate("Dialog", "..."))
 

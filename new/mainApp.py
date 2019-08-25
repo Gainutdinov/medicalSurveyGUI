@@ -6,6 +6,7 @@ from shell_ui import Ui_MainWindow
 from CustomDateEdit import DateEdit as customDateEdit
 from dialog import MyDialog
 from exception_handler import catch_exceptions
+from doctor_appointment import ApntDurationLabel, DoctorNameLabel, ApntDuratonSpinbox, DoctorComboBox, ApntCalendar, ApntGraphicView, ApntCheckButton, ApntVerticalSpacer
 import os
 import shutil
 import json
@@ -27,19 +28,22 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ui.dateEdit = customDateEdit(self.ui.centralwidget)
         self.ui.gridLayout.addWidget(self.ui.dateEdit, 3, 1, 1, 2)
         self.ui.gridLayout.update()
+        
 
         #self.ui.gridLayout.addWidget(customDateEdit, 3, 1, 1, 2)
 
         self.ui.lineEdit_4.setText(os.getcwd())
 
-        self.DOCTORS=[] 
-        self.VESSELS=[] 
-        self.PROTOCOL_ULTRASOUND=[]
-        self.typeOfProtocols={
-            'Приём Врача':'Доктора',
-            'УЗИ Общее':'Протоколы УЗИ',
-            'УЗИ Сосудов':'Сосуды',
-        }
+        # self.DOCTORS=[] 
+        # self.VESSELS=[] 
+        # self.PROTOCOL_ULTRASOUND=[]
+        # self.typeOfProtocols={
+        #     'Приём Врача':'Доктора',
+        #     'УЗИ Общее':'Протоколы УЗИ',
+        #     'УЗИ Сосудов':'Сосуды',
+        # }
+
+
 
 
 
@@ -53,12 +57,15 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ui.action.triggered.connect(self.menuChoice)
         self.ui.action_2.triggered.connect(self.close)
         self.ui.pushButton_3.clicked.connect(self.fillBirthDate)
-        self.ui.buttonGroup.buttonToggled.connect(self.enableButton)
-        self.ui.buttonGroup.buttonClicked.connect(self.fullfillComboBox)
+        self.ui.pushButton_4.clicked.connect(self.add_appointment_widgets)#lambda : self.ui.pushButton_4.setEnabled(False))
+        # self.ui.buttonGroup.buttonToggled.connect(self.enableButton)
+        # self.ui.buttonGroup.buttonClicked.connect(self.fullfillComboBox)
         self.ui.toolButton.clicked.connect(self.selectFolder)
-        self.ui.pushButton_4.clicked.connect(self.rmvFromSrv)
-        self.ui.pushButton_5.clicked.connect(self.addToSrv)
-        self.ui.listWidget.doubleClicked.connect(self.addToSrv)
+        # self.ui.pushButton_4.clicked.connect(self.rmvFromSrv)
+        # self.ui.pushButton_5.clicked.connect(self.addToSrv)
+        # self.ui.listWidget.doubleClicked.connect(self.addToSrv)
+        self.ui.listWidget_3.clicked.connect(self.addToMedTypes)
+        self.ui.listWidget_4.doubleClicked.connect(self.addToSrv_2)
         
 
 
@@ -106,7 +113,8 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
     def enableButton(self):
         # if self.ui.lineEdit.text().isEmpty(): # print('Empty') 
         if (self.ui.lineEdit.text() != "" and self.ui.lineEdit_2.text() != "" and self.ui.lineEdit_3.text() != "" \
-            and self.ui.buttonGroup.checkedButton() is not None):
+            and self.ui.listWidget_5.count() != 0):
+            # and self.ui.buttonGroup.checkedButton() is not None):
             self.ui.pushButton_2.setEnabled(True)
         else:
             self.ui.pushButton_2.setEnabled(False)
@@ -158,9 +166,9 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         #print(directory)
     
     def readSettingsFile(self):
-        self.DOCTORS.clear()
-        self.PROTOCOL_ULTRASOUND.clear()
-        self.VESSELS.clear()
+        # self.DOCTORS.clear()
+        # self.PROTOCOL_ULTRASOUND.clear()
+        # self.VESSELS.clear()
         with open('settings.json', 'r') as jsonfile:
             self.jsonData = json.load(jsonfile)
 
@@ -176,18 +184,22 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
             except:
                 print('Пациентов не было найдено')
 
-            for _ in os.listdir(self.jsonData['Доктора']):
-                self.DOCTORS.append(_.split('.')[0])
-            for _ in os.listdir(self.jsonData['Протоколы УЗИ']):
-                self.PROTOCOL_ULTRASOUND.append(_.split('.')[0])
-            for _ in os.listdir(self.jsonData['Сосуды']):
-                self.VESSELS.append(_.split('.')[0])
+            # for _ in os.listdir(self.jsonData['Доктора']):
+            #     self.DOCTORS.append(_.split('.')[0])
+            # for _ in os.listdir(self.jsonData['Протоколы УЗИ']):
+            #     self.PROTOCOL_ULTRASOUND.append(_.split('.')[0])
+            # for _ in os.listdir(self.jsonData['Сосуды']):
+            #     self.VESSELS.append(_.split('.')[0])
             self.ui.lineEdit.setText(self.jsonData['Фамилия'])
             self.ui.lineEdit_2.setText(self.jsonData['Имя'])
             self.ui.lineEdit_3.setText(self.jsonData['Отчество'])
             # birthDateStr = jsonData['ДатаРождения'] #"20/12/2015";
             # QDate Date = QDate::fromString(date_string_on_db,"dd/MM/yyyy");
             self.ui.dateEdit.setDate(QtCore.QDate.fromString(self.jsonData['ДатаРождения'],"dd.MM.yyyy")) # (1993, 12, 25)  # .setText(jsonData['Отчетсво'])
+            # for x in os.walk(self.jsonData['Обследования']):
+            for folder in filter(os.path.isdir, os.listdir(self.jsonData['Обследования'])):
+                self.ui.listWidget_3.addItem(QtWidgets.QListWidgetItem(folder))#self.ui.listWidget.currentItem().text())
+                #self.ui.listWidget_3
     
     def fillBirthDate(self):
         try:
@@ -212,18 +224,16 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         surname=self.ui.lineEdit.text()
         middleName=self.ui.lineEdit_3.text()
 
-        # protocol=self.ui.comboBox.currentText()
-        # with open('settings.json', 'r') as jsonfile:
-        dirWithProtocols=self.jsonData[self.typeOfProtocols[self.ui.buttonGroup.checkedButton().text()]]
-            
- 
-        # protocol = [filename for filename in os.listdir(dirWithProtocols) if filename.startswith(self.ui.comboBox.currentText())][0]
-        # print('--->',protocol)
-        for item in [self.ui.listWidget_2.item(i) for i in range(  self.ui.listWidget_2.count())]:
+        # dirWithProtocols=self.jsonData[self.typeOfProtocols[self.ui.buttonGroup.checkedButton().text()]]
+        for item in [self.ui.listWidget_5.item(i) for i in range(  self.ui.listWidget_5.count())]:
             protocolName=item.text()
-            protocolType=self.typeOfProtocols[item.data(QtCore.Qt.UserRole)]
+            # protocolType=self.typeOfProtocols[item.data(QtCore.Qt.UserRole)]
+            protocolType = item.data(QtCore.Qt.UserRole)
 
-            dirWithProtocols=self.jsonData[self.typeOfProtocols[item.data(QtCore.Qt.UserRole)]]
+            # Original dirWithProtocols
+            # dirWithProtocols=self.jsonData[self.typeOfProtocols[item.data(QtCore.Qt.UserRole)]]
+            # dirWithProtocols = os.path.join( self.jsonData['Обследования'], self.jsonData[self.typeOfProtocols[item.data(QtCore.Qt.UserRole)]])
+            dirWithProtocols = os.path.join( self.jsonData['Обследования'], self.jsonData[item.data(QtCore.Qt.UserRole)])
             protocol = [filename for filename in os.listdir(dirWithProtocols) if filename.startswith(item.text())][0]
             protocolExt=protocol.split('.')[1] #self.ui.comboBox.currentText().split('.')[1]
 
@@ -238,16 +248,6 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
             command='start winword "{}"'.format(new_dst_file_name.replace('/', '\\'))
             os.system(command)
 
-        # protocolName=protocol.split('.')[0]
-        # protocolExt='docx' #protocol.split('.')[1] #self.ui.comboBox.currentText().split('.')[1]
-        # newDirName=('{0}_{1}_{2}_{3}').format(surname,name,middleName,birthDate)
-        # newFileName=('{0}_{1}.{2}').format(protocolName,now,protocolExt)
-        # destDir=os.path.join(self.ui.lineEdit_4.text(),newDirName)
-        # srcDir=os.path.join(os.getcwd(),self.typeOfProtocols[self.ui.buttonGroup.checkedButton().text()],protocol)# self.ui.comboBox.currentText())
-        # new_dst_file_name=os.path.join(destDir,newFileName)
-        # print(new_dst_file_name)
-        # self.copy_rename(protocol, newFileName, srcDir, destDir)
-        # os.system(command)
 
         self.jsonData['Фамилия'] = surname 
         self.jsonData['Имя'] = name
@@ -269,6 +269,27 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.ui.listWidget_2.addItem(item)#self.ui.listWidget.currentItem().text())
             # self.enableButton()
 
+    def addToSrv_2(self):
+        if not (self.ui.listWidget_4.selectedIndexes() == []):
+            selectedValues = [self.ui.listWidget_5.item(i).text() for i in range(self.ui.listWidget_5.count())]
+            item = QtWidgets.QListWidgetItem(self.ui.listWidget_4.currentItem().text())
+            item.setData(QtCore.Qt.UserRole, self.ui.listWidget_3.currentItem().text())
+            if item.text() not in selectedValues:
+                self.ui.listWidget_5.addItem(item) # self.ui.listWidget.currentItem().text())
+            self.enableButton()
+
+
+    def addToMedTypes(self):
+        # for _ in self.ui.listWidget_3.selectedItems():
+        consType = self.ui.listWidget_3.selectedItems()[0].text()
+        consTypeDir = os.path.join(self.jsonData['Обследования'], consType)
+        self.ui.listWidget_4.clear()
+        for file in os.listdir(consTypeDir):
+            if file.endswith(".docx"):
+                self.ui.listWidget_4.addItem(file.split('.')[0]) # .addItems(self.DOCTORS)
+                # print(files) 
+
+
     def rmvFromSrv(self):
         listItems=self.ui.listWidget_2.selectedItems()
         if not listItems: return        
@@ -277,6 +298,23 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
             print(item.data(QtCore.Qt.UserRole))
             self.ui.listWidget_2.takeItem(self.ui.listWidget_2.row(item))
         print('RemovevFromSRV')
+    
+    def add_appointment_widgets(self):
+        self.ui.pushButton_4.setEnabled(False)
+        grid_layout = self.ui.gridLayout_4
+        # spinbox = QtWidgets.QAbstractSpinBox()
+        grid_layout.addWidget(ApntDurationLabel(),0,0,1,1)
+        grid_layout.addWidget(ApntDuratonSpinbox(),0,1,1,2)
+        grid_layout.addWidget(DoctorNameLabel(),1,0,1,1)
+        grid_layout.addWidget(DoctorComboBox(),1,1,1,2)
+        grid_layout.addWidget(ApntCalendar(),2,0, 1, 3)
+        grid_layout.addWidget(ApntCheckButton(),3,0, 1, 3)
+        grid_layout.addWidget(ApntGraphicView(),4,0, 1, 3)
+        #spacerItem = QtWidgets.QSpacerItem(110, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        #grid_layout.addItem(spacerItem, 5,0)
+
+        # vbox.addWidget(self.txtOutput)
+        # layout.addLayout(grid_layout)
 
  
 if __name__ == "__main__":
@@ -286,6 +324,7 @@ if __name__ == "__main__":
             'Протоколы УЗИ': os.path.join(os.getcwd(),'Протоколы УЗИ'),
             'Сосуды': os.path.join(os.getcwd(),'Сосуды'),
             'Пациенты': os.getcwd(),
+            'Обследования': os.getcwd(),
             'Фамилия': "Иванов",
             'Имя': "Иван",
             'Отчество': "Иванович",

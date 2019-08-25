@@ -21,6 +21,7 @@ class MyDialog(QtWidgets.QDialog):
             self.dialog_ui.lineEdit_2.setText(jsonData['Протоколы УЗИ'])
             self.dialog_ui.lineEdit_3.setText(jsonData['Сосуды'])
             self.dialog_ui.lineEdit_4.setText(jsonData['Пациенты'])
+            self.dialog_ui.lineEdit_5.setText(jsonData['Обследования'])
             self.surname = jsonData['Фамилия']
             self.name = jsonData['Имя']
             self.middleName = jsonData['Отчество']
@@ -32,10 +33,12 @@ class MyDialog(QtWidgets.QDialog):
         self.dialog_ui.toolButton_2.clicked.connect(self.selectDirectory)
         self.dialog_ui.toolButton_3.clicked.connect(self.selectDirectory)
         self.dialog_ui.toolButton_4.clicked.connect(self.selectDirectory)
+        self.dialog_ui.toolButton_5.clicked.connect(self.selectDirectory)
         self.dialog_ui.lineEdit.textChanged.connect(self.enableSaveConfig)
         self.dialog_ui.lineEdit_2.textChanged.connect(self.enableSaveConfig)
         self.dialog_ui.lineEdit_3.textChanged.connect(self.enableSaveConfig)
         self.dialog_ui.lineEdit_4.textChanged.connect(self.enableSaveConfig)
+        self.dialog_ui.lineEdit_5.textChanged.connect(self.enableSaveConfig)
 
         # self.dialog_ui.buttonBox.Cancel.clicked.connect(self.close)
         # self.dialog_ui.buttonBox.Save.clicked.connect(self.saveConfig)
@@ -46,6 +49,7 @@ class MyDialog(QtWidgets.QDialog):
             'Протоколы УЗИ': self.dialog_ui.lineEdit_2.text(),
             'Сосуды': self.dialog_ui.lineEdit_3.text(),
             'Пациенты': self.dialog_ui.lineEdit_4.text(),
+            'Обследования': self.dialog_ui.lineEdit_5.text(),
             'Фамилия': self.surname,
             'Имя': self.name,
             'Отчество': self.middleName,
@@ -60,7 +64,8 @@ class MyDialog(QtWidgets.QDialog):
         if (self.dialog_ui.lineEdit.text() != '' and
             self.dialog_ui.lineEdit_2.text() != '' and
             self.dialog_ui.lineEdit_3.text() != '' and
-            self.dialog_ui.lineEdit_4.text() != ''):
+            self.dialog_ui.lineEdit_4.text() != '' and
+            self.dialog_ui.lineEdit_5.text() != ''):
             self.dialog_ui.buttonBox.setEnabled(True)
 
     
@@ -76,3 +81,5 @@ class MyDialog(QtWidgets.QDialog):
                 self.dialog_ui.lineEdit_3.setText(directory)
             elif (self.sender().objectName()=='toolButton_4'):
                 self.dialog_ui.lineEdit_4.setText(directory)
+            elif (self.sender().objectName()=='toolButton_5'):
+                self.dialog_ui.lineEdit_5.setText(directory)
