@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from PyQt5 import QtCore, QtWidgets, QtMultimedia
+from PyQt5 import QtCore, QtWidgets, QtMultimedia, QtSql
 from docx import Document, shared
 from shell_ui import Ui_MainWindow
 from CustomDateEdit import DateEdit as customDateEdit
 from dialog import MyDialog
 from exception_handler import catch_exceptions
-from doctor_appointment import ApntDurationLabel, DoctorNameLabel, ApntDuratonSpinbox, DoctorComboBox, ApntCalendar, ApntGraphicView, ApntCheckButton, ApntVerticalSpacer
+from doctor_appointment import ApntDurationLabel, DoctorNameLabel, ApntDuratonSpinbox, DoctorComboBox, ApntCalendar, ApntCheckButton, ApntVerticalSpacer
+import db_create
 import os
 import shutil
 import json
@@ -220,6 +221,7 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
 
         now = QtCore.QDate.currentDate().toString('dd_MM_yyyy') # datetime.date(2012, 12, 14).strftime('%d_%m_%Y'))
         birthDate=self.ui.dateEdit.date().toString('dd_MM_yyyy')
+        birthDateUnixTime = QtCore.QDateTime.fromString(birthDate,"dd_MM_yyyy").toSecsSinceEpoch()
         name=self.ui.lineEdit_2.text()
         surname=self.ui.lineEdit.text()
         middleName=self.ui.lineEdit_3.text()
@@ -257,6 +259,20 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         with open('settings.json', 'w') as json_file:  
             json.dump(self.jsonData, json_file, ensure_ascii=False)
         print('OKAY!')
+        
+        conn = QtSql.QSqlDatabase.addDatabase('QSQLITE')
+        conn.setDatabaseName('timetable.db')
+        conn.open()
+        conn.transaction()
+        query = QtSql.QSqlQuery()
+        query.prepare("INSERT OR IGNORE INTO CLIENTS (client_full_name, client_birth_date) VALUES (?,?)")
+        query.addBindValue(('{0} {1} {2}').format(surname,name,middleName))
+        query.addBindValue(birthDateUnixTime)
+        query.exec_()
+        conn.commit()
+        conn.close()
+        # SELECT strftime('%s','now') - strftime('%s','2004-01-01 02:34:56')
+
         self.close()
     
     def addToSrv(self):
@@ -296,7 +312,7 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         for item in listItems:
             print(item.text())
             print(item.data(QtCore.Qt.UserRole))
-            self.ui.listWidget_2.takeItem(self.ui.listWidget_2.row(item))
+            #self.ui.listWidget_2.takeItem(self.ui.listWidget_2.row(item))
         print('RemovevFromSRV')
     
     def add_appointment_widgets(self):
@@ -308,13 +324,122 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         grid_layout.addWidget(DoctorNameLabel(),1,0,1,1)
         grid_layout.addWidget(DoctorComboBox(),1,1,1,2)
         grid_layout.addWidget(ApntCalendar(),2,0, 1, 3)
-        grid_layout.addWidget(ApntCheckButton(),3,0, 1, 3)
-        grid_layout.addWidget(ApntGraphicView(),4,0, 1, 3)
-        #spacerItem = QtWidgets.QSpacerItem(110, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        button = ApntCheckButton()
+        grid_layout.addWidget(button,3,0, 1, 3)
+
+        grid_layout.addWidget(QtWidgets.QLabel('Booking time: '),4,0, 1, 1)
+        timeedit = QtWidgets.QTimeEdit()
+        timeedit.setDisplayFormat('HH:mm')
+        time = QtCore.QTime().currentTime()
+        timeedit.setTime(time)
+        grid_layout.addWidget(timeedit,4,1, 1, 1)
+        btnSch = QtWidgets.QPushButton()
+        btnSch.setText('Book')
+        grid_layout.addWidget(btnSch,4,2, 1, 1)
+        # grid_layout.addWidget(QtWidgets.QPushButton(),5,2, 1, 1)
+
+        grid_layout.addWidget(QtWidgets.QTableView(),5,0, 1, 3)
+        print(self.ui.gridLayout_4.itemAt(9).widget())
+
+
+        self.ui.gridLayout_4.itemAt(5).widget().clicked.connect(self.sqlTbleviewModel)
+        self.ui.gridLayout_4.itemAt(8).widget().clicked.connect(self.bookConsult)
+
+        # self.ui.gridLayout_4.pushButton_0.clicked.connect(self.sqlTbleviewModel)
+        #print(self.ui.gridLayout_4.children())
+        # tableview = grid_layout.tableView
+        # self.model = QtSql.QSqlTableModel()
+        # tableview.setModel(self.model)
+        
+        # self.model.setTable('PERSON')
+        # self.model.setEditStrategy(QtSql.QSqlTableModel.OnFieldChange)   # All changes to the model will be applied immediately to the database
+        # self.model.select()
+        # self.model.setHeaderData(0, QtCore.Qt.Horizontal, "ID")
+        # self.model.setHeaderData(1, QtCore.Qt.Horizontal, "First name")
+        # self.model.setHeaderData(2, QtCore.Qt.Horizontal, "Last name")
+
+       #spacerItem = QtWidgets.QSpacerItem(110, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         #grid_layout.addItem(spacerItem, 5,0)
 
         # vbox.addWidget(self.txtOutput)
         # layout.addLayout(grid_layout)
+
+    def sqlTbleviewModel(self):
+        db = QtSql.QSqlDatabase.addDatabase('QSQLITE')
+        db.setDatabaseName('timetable.db')
+
+        if not db.open():
+            print("Cannot establish a database connection ")
+            sys.exit(1)
+        tableview = self.ui.gridLayout_4.itemAt(9).widget() #.QTableView
+        self.model = QtSql.QSqlQueryModel()
+        # self.model.setHeaderData(0, QtCore.Qt.Horizontal, "Name")
+        # self.model.setHeaderData(1, QtCore.Qt.Horizontal, "Price")
+        tableview.setModel(self.model)
+
+        q = QtSql.QSqlQuery()
+        # q.prepare("SELECT * FROM CLIENTS")
+        q.prepare(
+           " SELECT CLIENTS.client_full_name AS client_name, "
+           " DOCTORS.doctor_full_name AS doctor_name, "
+           " strftime('%H:%M', DATETIME(consultancy_start_time, 'unixepoch','localtime')) AS 'start', "
+           " strftime('%H:%M', DATETIME(consultancy_end_time, 'unixepoch','localtime')) AS 'finish', "
+           " strftime('%m/%Y', DATETIME(consultancy_start_time, 'unixepoch','localtime')) AS 'date', "
+           " consultancy_start_time AS unix_epoch_time_start, "
+           " consultancy_end_time AS unix_epoch_time_finish, "
+           " type_of_consultation AS consultancy_type, "
+           " consultancy_duration  AS duration "
+           " FROM SCHEDULE "
+           " INNER JOIN CLIENTS ON SCHEDULE.client_id=CLIENTS.id INNER JOIN DOCTORS ON SCHEDULE.doctor_id=DOCTORS.id "
+           " WHERE SCHEDULE.consultancy_start_time >= ? AND SCHEDULE.consultancy_start_time <= ? "
+           " ORDER BY SCHEDULE.consultancy_start_time;"
+           " "
+           )
+        # q.addBindValue('1567242000')
+        # q.addBindValue('1567328300')
+        schCld = self.ui.gridLayout_4.itemAt(4).widget().date().toString('dd_MM_yyyy')
+        print('UnixTime',QtCore.QDateTime.fromString(schCld,"dd_MM_yyyy").toSecsSinceEpoch())
+        schCldUnix = QtCore.QDateTime.fromString(schCld,"dd_MM_yyyy").toSecsSinceEpoch()
+        print(schCld)
+        q.bindValue(0, schCldUnix)
+        q.bindValue(1, str(int(schCldUnix)+86400))
+        # UnixTime = QtCore.QDateTime.fromString(birthDate,"dd_MM_yyyy").toSecsSinceEpoch(
+        # self.ui.dateEdit.date().toString('dd_MM_yyyy')
+        
+        q.exec_()
+        if q.lastError().isValid():
+            print('--Error with SQL query--')
+            print(q.lastError().text())
+        
+        while q.next():
+            cid = q.value (0)
+            name =  q.value (1)
+            price = q.value (2)
+            print (cid,name,price)
+        print('---------')
+        db.close()
+        self.model.setQuery(q)
+        # print(q.value(0))
+
+        # db.close()
+
+
+
+        # self . model . setQuery ( query )
+        # self . model . removeColumn (0)
+        # self . model . setHeaderData (0 , Qt . Horizontal , " Name " )
+        # self . model . setHeaderData (1 , Qt . Horizontal , " Price " )
+
+
+        # self.model.setTable('PATIENTS')
+        # self.model.setEditStrategy(QtSql.QSqlTableModel.OnFieldChange)   # All changes to the model will be applied immediately to the database
+        # self.model.select()
+        # self.model.setHeaderData(0, QtCore.Qt.Horizontal, "ID")
+        # self.model.setHeaderData(1, QtCore.Qt.Horizontal, "First name")
+        # self.model.setHeaderData(2, QtCore.Qt.Horizontal, "Last name")
+    
+    def bookConsult(self):
+        print('bookConsult')
 
  
 if __name__ == "__main__":
