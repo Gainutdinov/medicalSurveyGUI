@@ -439,7 +439,91 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         # self.model.setHeaderData(2, QtCore.Qt.Horizontal, "Last name")
     
     def bookConsult(self):
-        print('bookConsult')
+
+        
+        db = QtSql.QSqlDatabase.addDatabase('QSQLITE')
+        db.setDatabaseName('timetable.db')
+        if not db.open():
+            print("Cannot establish a database connection ")
+            sys.exit(1)
+        birthDate=self.ui.dateEdit.date().toString('dd_MM_yyyy')
+        birthDateUnixTime = QtCore.QDateTime.fromString(birthDate,"dd_MM_yyyy").toSecsSinceEpoch()
+        name=self.ui.lineEdit_2.text()
+        surname=self.ui.lineEdit.text()
+        middleName=self.ui.lineEdit_3.text()
+        doctorFullName = self.ui.gridLayout_4.itemAt(3).widget().currentText()
+        type_of_consultation = ''
+        protocols=[]
+
+        bookDateTime = self.ui.gridLayout_4.itemAt(4).widget().date().toString('dd_MM_yyyy')+'_'+\
+            self.ui.gridLayout_4.itemAt(7).widget().time().toString("hh_mm")
+        consultancy_duration = self.ui.gridLayout_4.itemAt(1).widget().value()
+        consultancy_start_time = QtCore.QDateTime.fromString(bookDateTime,"dd_MM_yyyy_hh_mm").toSecsSinceEpoch()
+        consultancy_end_time = consultancy_start_time + consultancy_duration * 60
+
+        if (self.ui.listWidget_5.count() != 0):
+            for item in [self.ui.listWidget_5.item(i) for i in range(self.ui.listWidget_5.count())]:
+                protocolName=item.text()
+                protocols.append(protocolName)
+            type_of_consultation = '; '.join(protocols)
+        else:
+            type_of_consultation = 'Common medical examination'
+        print(type_of_consultation)
+        print('start',consultancy_start_time)
+        print('end',consultancy_end_time)
+        q = QtSql.QSqlQuery()
+        q.prepare("INSERT OR IGNORE INTO CLIENTS (client_full_name, client_birth_date) VALUES (?,?)")
+        q.addBindValue(('{0} {1} {2}').format(surname,name,middleName))
+        q.addBindValue(birthDateUnixTime)
+        q.exec_()
+        if q.lastError().isValid():
+            print('--Error with SQL query--')
+            print(q.lastError().text())
+        
+        q.prepare(
+            "SELECT * FROM SCHEDULE WHERE consultancy_start_time >= ?  AND consultancy_end_time <= ?"
+            )
+        q.addBindValue(consultancy_start_time)
+        q.addBindValue(consultancy_end_time)
+        q.exec_()
+        if q.lastError().isValid():
+            print('--Error with SQL query--')
+            print(q.lastError().text())
+        
+ 
+        # print(q.record().count())
+        
+        if q.first(): # try to find whether the time slot is free for booking
+            print('These time slot is already booked')
+            QtWidgets.QMessageBox.information(self, "Временной слот уже занят", 
+                          "Данный временной промежуток уже занят, пожалуйста, выберите другое время.",
+                          buttons=QtWidgets.QMessageBox.Close,
+                          defaultButton=QtWidgets.QMessageBox.Close)
+            db.close()
+        else:
+            q.prepare(
+                "INSERT INTO SCHEDULE (client_id, doctor_id, consultancy_start_time, consultancy_end_time, type_of_consultation, consultancy_duration)"
+                "VALUES((SELECT id FROM CLIENTS WHERE client_full_name = ?),"
+                "(SELECT id FROM DOCTORS WHERE doctor_full_name = ?),"
+                "?,?,?,?)"
+                )
+            q.addBindValue(('{0} {1} {2}').format(surname,name,middleName))
+            q.addBindValue(doctorFullName)
+            q.addBindValue(consultancy_start_time)
+            q.addBindValue(consultancy_end_time)
+            q.addBindValue(type_of_consultation)
+            q.addBindValue(consultancy_duration)
+            q.exec_()
+            if q.lastError().isValid():
+                print('--Error with SQL query--')
+                print(q.lastError().text())
+            
+            print('Value added.')
+            db.close()
+            self.sqlTbleviewModel()
+
+
+
 
  
 if __name__ == "__main__":
