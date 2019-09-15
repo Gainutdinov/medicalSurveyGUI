@@ -260,7 +260,14 @@
     <addaction name="separator"/>
     <addaction name="action_2"/>
    </widget>
+   <widget class="QMenu" name="menu_2">
+    <property name="title">
+     <string>Отчетность</string>
+    </property>
+    <addaction name="action_4"/>
+   </widget>
    <addaction name="menu"/>
+   <addaction name="menu_2"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="action">
@@ -276,6 +283,11 @@
   <action name="action_2">
    <property name="text">
     <string>Выход</string>
+   </property>
+  </action>
+  <action name="action_4">
+   <property name="text">
+    <string>Выгрузить отчет за текущий месяц</string>
    </property>
   </action>
  </widget>

@@ -12,6 +12,7 @@ import os
 import shutil
 import json
 import sys
+import csv
 
 
 
@@ -67,6 +68,7 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         # self.ui.listWidget.doubleClicked.connect(self.addToSrv)
         self.ui.listWidget_3.clicked.connect(self.addToMedTypes)
         self.ui.listWidget_4.doubleClicked.connect(self.addToSrv_2)
+        self.ui.action_4.triggered.connect(self.reportCurrentMonth)
         
 
 
@@ -339,11 +341,15 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         # grid_layout.addWidget(QtWidgets.QPushButton(),5,2, 1, 1)
 
         grid_layout.addWidget(QtWidgets.QTableView(),5,0, 1, 3)
-        print(self.ui.gridLayout_4.itemAt(9).widget())
+        btnDeact = QtWidgets.QPushButton()
+        btnDeact.setText('Deactivate')
+        grid_layout.addWidget(btnDeact,6,0, 1, 3)
+        print(self.ui.gridLayout_4.itemAt(10).widget())
 
 
         self.ui.gridLayout_4.itemAt(5).widget().clicked.connect(self.sqlTbleviewModel)
         self.ui.gridLayout_4.itemAt(8).widget().clicked.connect(self.bookConsult)
+        self.ui.gridLayout_4.itemAt(10).widget().clicked.connect(self.deactConsult)
 
         # self.ui.gridLayout_4.pushButton_0.clicked.connect(self.sqlTbleviewModel)
         #print(self.ui.gridLayout_4.children())
@@ -388,7 +394,8 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
            " consultancy_start_time AS unix_epoch_time_start, "
            " consultancy_end_time AS unix_epoch_time_finish, "
            " type_of_consultation AS consultancy_type, "
-           " consultancy_duration  AS duration "
+           " consultancy_duration  AS duration, "
+           " booking_id "
            " FROM SCHEDULE "
            " INNER JOIN CLIENTS ON SCHEDULE.client_id=CLIENTS.id INNER JOIN DOCTORS ON SCHEDULE.doctor_id=DOCTORS.id "
            " WHERE SCHEDULE.consultancy_start_time >= ? AND SCHEDULE.consultancy_start_time <= ? "
@@ -521,6 +528,93 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
             print('Value added.')
             db.close()
             self.sqlTbleviewModel()
+    
+    def deactConsult(self):
+        print('deactivate')
+
+        model = self.ui.gridLayout_4.itemAt(9).widget().model()
+        sel = self.ui.gridLayout_4.itemAt(9).widget().selectionModel()
+
+        indexes = []
+        viewData = []
+        # find number of selected rows
+        for index in sel.selectedIndexes()[:]:
+            indexes.append(index.row())
+        rows = set(indexes)
+
+        for row in rows:
+            rowValues = []
+            for column in range(model.columnCount()):
+                rowValues.append(model.data(model.index(row, column)))
+            viewData.append(rowValues)
+
+
+        db = QtSql.QSqlDatabase.addDatabase("QSQLITE")
+        db.setDatabaseName("timetable.db")
+        if not db.open():
+            print("Cannot establish a database connection.")
+        q = QtSql.QSqlQuery()
+
+        for selectRow in viewData:
+            print('----------',selectRow[-1]) # booknig_id to delete
+            val = selectRow[-1]
+            q.prepare(" DELETE FROM SCHEDULE WHERE booking_id = ? ; ")
+            q.bindValue(0, val)
+            q.exec_()
+            ler = q.lastError ()
+            if ler.isValid():
+                db.close()
+                print(ler.text())
+
+        db.close()
+        # self.sqlTbleviewModel()
+        
+
+    
+    def reportCurrentMonth(self):
+        days = int(QtCore.QDate.currentDate().toString("dd"))
+        report = [ ['doctor_name', 'consultancy_start_time', 'client_name', 'type_of_consultation', 'consultancy_duration'] ]
+        startDate = QtCore.QDate.currentDate().addDays(1 - days) # .toString("dd.MM.yyyy")
+        startDateUnixTime = QtCore.QDateTime.fromString(startDate.toString('dd_MM_yyyy'),"dd_MM_yyyy").toSecsSinceEpoch() # .toString("dd.MM.yyyy")
+        finishDateUnixTime = QtCore.QDateTime.fromString(startDate.addMonths(1).toString('dd_MM_yyyy'),"dd_MM_yyyy").toSecsSinceEpoch() # .toString("dd.MM.yyyy")
+        print('--->',startDateUnixTime)
+        print('--->',finishDateUnixTime)
+
+        db = QtSql.QSqlDatabase.addDatabase("QSQLITE")
+        db.setDatabaseName("timetable.db")
+        if not db.open():
+            print("Cannot establish a database connection.")
+        q = QtSql.QSqlQuery()
+        q.prepare(" SELECT DOCTORS.doctor_full_name AS doctor_name,"
+                  " SCHEDULE.consultancy_start_time,"
+                  " CLIENTS.client_full_name AS client_name ,"
+                  " SCHEDULE.type_of_consultation,  "
+                  " SCHEDULE.consultancy_duration AS consultancy_duration FROM SCHEDULE "
+                  " INNER JOIN CLIENTS ON SCHEDULE.client_id=CLIENTS.id INNER JOIN DOCTORS ON SCHEDULE.doctor_id=DOCTORS.id "
+                  " WHERE SCHEDULE.consultancy_start_time >= ? AND SCHEDULE.consultancy_start_time <= ? ; ") # EXECUTE
+        q.bindValue(0, startDateUnixTime) # 1567278000
+        q.bindValue(1, finishDateUnixTime) # 1567872900
+        q.exec_()
+        ler = q.lastError ()
+        if ler.isValid():
+            db.close()
+            print(ler.text())
+
+        while q.next():
+            doctor_name = q.value(0)
+            consultancy_start_time = QtCore.QDateTime.fromSecsSinceEpoch(q.value(1)).toString(QtCore.Qt.ISODate)
+            client_name = q.value(2)
+            type_of_consultation = q.value(3)
+            consultancy_duration = q.value(4)
+            report.append([doctor_name, consultancy_start_time, client_name, type_of_consultation, consultancy_duration])
+            # print( doctor_name, consultancy_start_time, client_name, type_of_consultation, consultancy_duration)
+
+        db.close()
+        
+
+        with open("report.csv", "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerows(report)
 
 
 
