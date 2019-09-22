@@ -56,6 +56,60 @@ class ApntCheckButton(QtWidgets.QPushButton):
         self.setText('Посмотреть расписание')
         self.setObjectName('pushButton_0')
 
+class ConsChgDialog(QtWidgets.QDialog):
+    def __init__(self, parent=None, selectedDoctor=None, \
+            doctors=[], clientFullName='Иванов Иван Иванович', duration=15, consulationType='Common medical examination', startTime='08:00', bookingId=None, startTimeEpoch=None):
+        QtWidgets.QDialog.__init__(self, parent)
+        self.setWindowTitle("Изменить запись")
+        self.resize(200, 70)
+        
+        self.mainBox = QtWidgets.QVBoxLayout()
+        
+        self.labelDoctor = QtWidgets.QLabel('Имя доктора')
+        self.cmbDoctor = QtWidgets.QComboBox()
+        for doctor in doctors:
+            self.cmbDoctor.addItem(doctor)# setText('Имя доктора')
+        self.cmbDoctor.setCurrentText(selectedDoctor)
+        self.labelClient = QtWidgets.QLabel('Имя клиента')
+        self.lineEditClient = QtWidgets.QLineEdit(clientFullName)
+        self.lineEditClient.setPlaceholderText('Иванов Иван Иванович')
+        # self.lineEditClient('Иванов Иван Иванович')
+        self.labelStartTime = QtWidgets.QLabel('Время начала')
+        self.timeEditStartTime = QtWidgets.QTimeEdit() # QDateTimeEdit.date()
+        self.timeEditStartTime.setTime(QtCore.QTime.fromString(startTime, "HH:mm"))
+        self.labelDuration = QtWidgets.QLabel('Длительность')
+        self.spinDuration = QtWidgets.QSpinBox()
+        self.spinDuration.setValue(duration)
+        self.spinDuration.setRange(15, 120)
+        self.spinDuration.setSingleStep(5)
+        self.spinDuration.setButtonSymbols(QtWidgets.QAbstractSpinBox.PlusMinus)
+        self.labelconsType = QtWidgets.QLabel('Тип консультации')
+        self.lineEditConsType = QtWidgets.QLineEdit(consulationType)
+
+
+        self.mainBox.addWidget(self.labelDoctor)
+        self.mainBox.addWidget(self.cmbDoctor)
+        self.mainBox.addWidget(self.labelClient)
+        self.mainBox.addWidget(self.lineEditClient)
+        self.mainBox.addWidget(self.labelStartTime)
+        self.mainBox.addWidget(self.timeEditStartTime)
+        self.mainBox.addWidget(self.labelDuration)
+        self.mainBox.addWidget(self.spinDuration)
+
+        self.mainBox.addWidget(self.labelconsType)
+        self.mainBox.addWidget(self.lineEditConsType)
+        
+        self.hbox = QtWidgets.QHBoxLayout()
+        self.btnOK = QtWidgets.QPushButton("&OK")
+        self.btnCancel = QtWidgets.QPushButton("&Cancel")
+        self.btnCancel.setDefault(True)
+        self.btnOK.clicked.connect(self.accept)
+        self.btnCancel.clicked.connect(self.reject)
+        self.hbox.addWidget(self.btnOK)
+        self.hbox.addWidget(self.btnCancel)
+        self.mainBox.addLayout(self.hbox)
+        
+        self.setLayout(self.mainBox)
 
 
 # class ApntRect(QtWidgets.QGraphicsRectItem):

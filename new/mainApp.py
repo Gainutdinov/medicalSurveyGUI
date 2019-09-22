@@ -6,7 +6,7 @@ from shell_ui import Ui_MainWindow
 from CustomDateEdit import DateEdit as customDateEdit
 from dialog import MyDialog
 from exception_handler import catch_exceptions
-from doctor_appointment import ApntDurationLabel, DoctorNameLabel, ApntDuratonSpinbox, DoctorComboBox, ApntCalendar, ApntCheckButton, ApntVerticalSpacer
+from doctor_appointment import ApntDurationLabel, DoctorNameLabel, ApntDuratonSpinbox, DoctorComboBox, ApntCalendar, ApntCheckButton, ApntVerticalSpacer, ConsChgDialog
 import db_create
 import os
 import shutil
@@ -344,12 +344,20 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         btnDeact = QtWidgets.QPushButton()
         btnDeact.setText('Deactivate')
         grid_layout.addWidget(btnDeact,6,0, 1, 3)
-        print(self.ui.gridLayout_4.itemAt(10).widget())
+        btnChg = QtWidgets.QPushButton()
+        btnChg.setText('Change')
+        grid_layout.addWidget(btnChg,7,0, 1, 3)
+        chooseEntry = QtWidgets.QPushButton()
+        chooseEntry.setText('Выбрать запись')
+        grid_layout.addWidget(chooseEntry,8,0, 1, 3)
+        # print(self.ui.gridLayout_4.itemAt(3).widget())
 
 
         self.ui.gridLayout_4.itemAt(5).widget().clicked.connect(self.sqlTbleviewModel)
         self.ui.gridLayout_4.itemAt(8).widget().clicked.connect(self.bookConsult)
         self.ui.gridLayout_4.itemAt(10).widget().clicked.connect(self.deactConsult)
+        self.ui.gridLayout_4.itemAt(11).widget().clicked.connect(self.changeConsult)
+        self.ui.gridLayout_4.itemAt(12).widget().clicked.connect(self.chooseEntry)
 
         # self.ui.gridLayout_4.pushButton_0.clicked.connect(self.sqlTbleviewModel)
         #print(self.ui.gridLayout_4.children())
@@ -447,7 +455,6 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
     
     def bookConsult(self):
 
-        
         db = QtSql.QSqlDatabase.addDatabase('QSQLITE')
         db.setDatabaseName('timetable.db')
         if not db.open():
@@ -567,10 +574,86 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
                 print(ler.text())
 
         db.close()
-        # self.sqlTbleviewModel()
+        self.sqlTbleviewModel()
+    
+    def changeConsult(self):
+
+        def on_accepted():
+            print("on_accepted")
+
+        def on_rejected():
+            print("on_rejected")
+
+        def on_finished(status):
+            print("on_finished", status)
+
+
+        print('change consultancy')
+
+        doctors = [self.ui.gridLayout_4.itemAt(3).widget().itemText(i) for i in range(self.ui.gridLayout_4.itemAt(3).widget().count())]
+        model = self.ui.gridLayout_4.itemAt(9).widget().model()
+        sel = self.ui.gridLayout_4.itemAt(9).widget().selectionModel()
+
+        if sel:
+            indexes = []
+            viewData = []
+            # find number of selected rows
+            for index in sel.selectedIndexes()[:]:
+                indexes.append(index.row())
+            rows = set(indexes)
+
+            for row in rows:
+                rowValues = []
+                for column in range(model.columnCount()):
+                    rowValues.append(model.data(model.index(row, column)))
+                viewData.append(rowValues)
+
+            if viewData: # set up patient's full name
+                print('changeConsult doctor ', viewData)
+                clientFullName = viewData[0][0]
+                duration = viewData[0][-2]
+                consultationType = viewData[0][-3]
+                startTime = viewData[0][2]
+                selectedDoctor = viewData[0][1]
+                bookingId = viewData[0][-1]
+                startTimeEpoch = viewData[0][5]
         
 
-    
+        dialog = ConsChgDialog(w, selectedDoctor, doctors, clientFullName, duration, consultationType, startTime, bookingId, startTimeEpoch)
+        dialog.accepted.connect(on_accepted)
+        dialog.rejected.connect(on_rejected)
+        dialog.finished[int].connect(on_finished)
+        result = dialog.exec_()
+        if result == QtWidgets.QDialog.Accepted:
+            print(dialog.lineEdit.text())
+        else:
+            print("Нажата кнопка Cancel, кнопка Закрыть или клавиша <Esc>", result)
+        
+    def chooseEntry(self):
+
+        model = self.ui.gridLayout_4.itemAt(9).widget().model()
+        sel = self.ui.gridLayout_4.itemAt(9).widget().selectionModel()
+
+        if sel:
+            indexes = []
+            viewData = []
+            # find number of selected rows
+            for index in sel.selectedIndexes()[:]:
+                indexes.append(index.row())
+            rows = set(indexes)
+
+            for row in rows:
+                rowValues = []
+                for column in range(model.columnCount()):
+                    rowValues.append(model.data(model.index(row, column)))
+                viewData.append(rowValues)
+
+            if viewData: # set up patient's full name
+                self.ui.lineEdit.setText(viewData[0][0].split(' ')[0])
+                self.ui.lineEdit_2.setText(viewData[0][0].split(' ')[1])
+                self.ui.lineEdit_3.setText(viewData[0][0].split(' ')[2])
+
+
     def reportCurrentMonth(self):
         days = int(QtCore.QDate.currentDate().toString("dd"))
         report = [ ['doctor_name', 'consultancy_start_time', 'client_name', 'type_of_consultation', 'consultancy_duration'] ]
