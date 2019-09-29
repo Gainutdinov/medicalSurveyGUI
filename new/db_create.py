@@ -32,6 +32,7 @@ if not os.path.exists(path_db):
 				consultancy_end_time INTEGER NOT NULL,
 				type_of_consultation TEXT NOT NULL UNIQUE,
 				consultancy_duration INTEGER NOT NULL,
+				actual_consultancy_start_time INTEGER,
 				FOREIGN KEY (client_id) REFERENCES CLIENTS(id),
 				FOREIGN KEY (doctor_id) REFERENCES DOCTORS(id)
 			); 

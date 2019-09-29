@@ -85,6 +85,8 @@ class ConsChgDialog(QtWidgets.QDialog):
         self.spinDuration.setButtonSymbols(QtWidgets.QAbstractSpinBox.PlusMinus)
         self.labelconsType = QtWidgets.QLabel('Тип консультации')
         self.lineEditConsType = QtWidgets.QLineEdit(consulationType)
+        self.startTimeEpoch = startTimeEpoch
+        self.bookingId = bookingId
 
 
         self.mainBox.addWidget(self.labelDoctor)

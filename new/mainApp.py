@@ -270,11 +270,44 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         query.prepare("INSERT OR IGNORE INTO CLIENTS (client_full_name, client_birth_date) VALUES (?,?)")
         query.addBindValue(('{0} {1} {2}').format(surname,name,middleName))
         query.addBindValue(birthDateUnixTime)
+
         query.exec_()
         conn.commit()
-        conn.close()
-        # SELECT strftime('%s','now') - strftime('%s','2004-01-01 02:34:56')
 
+        if self.ui.pushButton_4.isChecked():
+            print('checked.')
+
+            model = self.ui.gridLayout_4.itemAt(9).widget().model()
+            sel = self.ui.gridLayout_4.itemAt(9).widget().selectionModel()
+
+            print(model)
+
+            indexes = []
+            selectedEntry = []
+            # find number of selected rows
+            for index in sel.selectedIndexes()[:]:
+                indexes.append(index.row())
+            rows = set(indexes)
+
+            for row in rows:
+                rowValues = []
+                for column in range(model.columnCount()):
+                    rowValues.append(model.data(model.index(row, column)))
+                selectedEntry.append(rowValues)
+
+            
+            val = selectedEntry[0][9] # booknig_id to delete
+            query.prepare(" UPDATE SCHEDULE SET actual_consultancy_start_time = ? WHERE booking_id = ? ; ")
+            now = QtCore.QDateTime.currentDateTime().toSecsSinceEpoch()
+            query.bindValue(0, now)
+            query.bindValue(1, val)
+            query.exec_()
+            ler = query.lastError ()
+            if ler.isValid():
+                conn.close()
+                print(ler.text())
+            conn.commit()
+        conn.close()
         self.close()
     
     def addToSrv(self):
@@ -563,8 +596,8 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         q = QtSql.QSqlQuery()
 
         for selectRow in viewData:
-            print('----------',selectRow[-1]) # booknig_id to delete
-            val = selectRow[-1]
+            # print('----------',selectRow[9]) 
+            val = selectRow[9] # booknig_id to delete
             q.prepare(" DELETE FROM SCHEDULE WHERE booking_id = ? ; ")
             q.bindValue(0, val)
             q.exec_()
@@ -579,7 +612,64 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
     def changeConsult(self):
 
         def on_accepted():
-            print("on_accepted")
+            if (dialog.lineEditClient.text() and dialog.lineEditConsType.text() ):
+                consultancyStartTime = QtCore.QDateTime.fromSecsSinceEpoch(dialog.startTimeEpoch).toString('dd_MM_yyyy')+ \
+                    dialog.timeEditStartTime.time().toString("_HH_mm")
+                consultancy_start_time = QtCore.QDateTime.fromString(consultancyStartTime,"dd_MM_yyyy_HH_mm").toSecsSinceEpoch()
+                consultancy_end_time = QtCore.QDateTime.fromString(consultancyStartTime,"dd_MM_yyyy_HH_mm").toSecsSinceEpoch() + dialog.spinDuration.value()*60
+                type_of_consultation = dialog.lineEditConsType.text()
+                consultancy_duration = dialog.spinDuration.value()
+                client_full_name = dialog.lineEditClient.text()
+                doctor_full_name = dialog.cmbDoctor.currentText()
+                booking_id = dialog.bookingId
+
+                # client_full_name = dialog.lineEditClient.text().replace("", "_")
+                
+                print("on_accepted", dialog.bookingId) 
+                dialog.lineEditConsType.text()
+                dialog.spinDuration.value()
+
+                db = QtSql.QSqlDatabase.addDatabase('QSQLITE')
+                db.setDatabaseName('timetable.db')
+                db.open()
+                db.transaction()
+                query = QtSql.QSqlQuery()
+                query.prepare("INSERT OR IGNORE INTO CLIENTS (client_full_name, client_birth_date) VALUES (?, 747273600)")
+                query.addBindValue(('{0}').format(dialog.lineEditClient.text()))
+                query.exec_()
+                db.commit()
+
+
+                query.prepare(
+                "UPDATE SCHEDULE "
+                "SET consultancy_start_time = ?, "
+                "    consultancy_end_time = ?, "
+                "    type_of_consultation = ?, "
+                "    consultancy_duration = ?, "
+                "    client_id=( "
+                "        SELECT id FROM CLIENTS WHERE client_full_name = ? ), "
+                "    doctor_id=( "
+                "        SELECT id FROM DOCTORS WHERE doctor_full_name = ? ) " 
+                "WHERE booking_id = ? "
+                )
+                print(consultancy_start_time, consultancy_end_time, type_of_consultation, consultancy_duration,client_full_name,doctor_full_name, booking_id)    
+                query.bindValue(0, consultancy_start_time)
+                query.bindValue(1, consultancy_end_time)
+                query.bindValue(2, type_of_consultation)
+                query.bindValue(3, consultancy_duration)
+                query.bindValue(4, client_full_name)
+                query.bindValue(5, doctor_full_name)
+                query.bindValue(6, booking_id)
+                query.exec_()
+                ler = query.lastError ()
+                if ler.isValid():
+                    db.close()
+                    print('ERROR', query.result)
+                    print(ler.text())
+                db.commit()
+                db.close()
+                self.sqlTbleviewModel()
+                    #------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         def on_rejected():
             print("on_rejected")
@@ -611,11 +701,11 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
             if viewData: # set up patient's full name
                 print('changeConsult doctor ', viewData)
                 clientFullName = viewData[0][0]
-                duration = viewData[0][-2]
-                consultationType = viewData[0][-3]
+                duration = viewData[0][8]
+                consultationType = viewData[0][-4]
                 startTime = viewData[0][2]
                 selectedDoctor = viewData[0][1]
-                bookingId = viewData[0][-1]
+                bookingId = viewData[0][9]
                 startTimeEpoch = viewData[0][5]
         
 
@@ -625,7 +715,8 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
         dialog.finished[int].connect(on_finished)
         result = dialog.exec_()
         if result == QtWidgets.QDialog.Accepted:
-            print(dialog.lineEdit.text())
+            # print(dialog.lineEditClient.text())
+            print('OK button was clicked.')
         else:
             print("Нажата кнопка Cancel, кнопка Закрыть или клавиша <Esc>", result)
         
