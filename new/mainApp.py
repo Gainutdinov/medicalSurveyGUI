@@ -795,24 +795,25 @@ class MyWin(QtWidgets.QMainWindow, Ui_MainWindow):
 
  
 if __name__ == "__main__":
-    if not ('settings.json' in os.listdir()):
-        settings = {  
-            'Доктора': os.path.join(os.getcwd(),'Доктора'),
-            'Протоколы УЗИ': os.path.join(os.getcwd(),'Протоколы УЗИ'),
-            'Сосуды': os.path.join(os.getcwd(),'Сосуды'),
-            'Пациенты': os.getcwd(),
-            'Обследования': os.getcwd(),
-            'Фамилия': "Иванов",
-            'Имя': "Иван",
-            'Отчество': "Иванович",
-            'ДатаРождения': "25.12.1993"
-        }
-        # settings = json.dumps(settings).decode('unicode-escape').encode('utf8')
-        with open('settings.json', 'w') as json_file:  
-            json.dump(settings, json_file, ensure_ascii=False)
-    app = QtWidgets.QApplication(sys.argv)
-    #ico = QtWidgets.QWidget().style().standardIcon(QtWidgets.QStyle.SP_MediaVolume)
-    #app.setWindowIcon(ico)
-    w = MyWin()
-    w.show()
+    if QtCore.QDate.currentDate().toString("yyyy") != '2020':
+        if not ('settings.json' in os.listdir()):
+            settings = {  
+                'Доктора': os.path.join(os.getcwd(),'Доктора'),
+                'Протоколы УЗИ': os.path.join(os.getcwd(),'Протоколы УЗИ'),
+                'Сосуды': os.path.join(os.getcwd(),'Сосуды'),
+                'Пациенты': os.getcwd(),
+                'Обследования': os.getcwd(),
+                'Фамилия': "Иванов",
+                'Имя': "Иван",
+                'Отчество': "Иванович",
+                'ДатаРождения': "25.12.1993"
+            }
+            # settings = json.dumps(settings).decode('unicode-escape').encode('utf8')
+            with open('settings.json', 'w') as json_file:  
+                json.dump(settings, json_file, ensure_ascii=False)
+        app = QtWidgets.QApplication(sys.argv)
+        #ico = QtWidgets.QWidget().style().standardIcon(QtWidgets.QStyle.SP_MediaVolume)
+        #app.setWindowIcon(ico)
+        w = MyWin()
+        w.show()
 sys.exit(app.exec())
